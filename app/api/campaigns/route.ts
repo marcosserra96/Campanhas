@@ -15,9 +15,10 @@ export async function GET(request:NextRequest){
   const inst=await db<Row[]>('institutions','select=*&campaign_id=eq.'+r.id+'&order=created_at.asc');
   const institutions=await Promise.all(inst.map(async i=>{
    const needs=await db<Row[]>('needs','select=*&institution_id=eq.'+i.id+'&order=created_at.asc');
-   return {id:i.id,name:i.name,description:i.description,needs:needs.map(n=>({id:n.id,name:n.name,unit:n.unit,target:Number(n.target),received:0,points:Number(n.points)}))};
+   return {id:i.id,name:i.name,description:i.description,needs:needs.map(n=>({id:n.id,name:n.name,unit:n.unit,target:Number(n.target),received:Number(n.opening_received||0),openingReceived:Number(n.opening_received||0),specification:n.specification||'',points:Number(n.points)}))};
   }));
-  return {id:r.slug,title:r.title,subtitle:r.subtitle,description:r.description,start:r.starts_on||'',end:r.ends_on||'',status:r.status,accent:r.accent,banner:r.banner_url||'',institutions,rankingBy:r.ranking_by,rankingMode:r.ranking_mode} as Campaign;
+  const beneficiaries=await db<Row[]>('beneficiary_groups','select=label,girls,boys&campaign_id=eq.'+r.id+'&order=label.asc');
+  return {beneficiaries:beneficiaries.map(b=>({label:b.label,girls:Number(b.girls),boys:Number(b.boys)})),id:r.slug,title:r.title,subtitle:r.subtitle,description:r.description,start:r.starts_on||'',end:r.ends_on||'',status:r.status,accent:r.accent,banner:r.banner_url||'',institutions,rankingBy:r.ranking_by,rankingMode:r.ranking_mode} as Campaign;
  }));
  const idToSlug=new Map(rows.map(r=>[r.id,r.slug]));
  const allowedIds=rows.map(r=>r.id);
