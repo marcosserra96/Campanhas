@@ -1,6 +1,7 @@
-export type Need={id:string;name:string;unit:string;target:number;received:number;points:number};
+export type Need={id:string;name:string;unit:string;target:number;received:number;points:number;specification?:string;openingReceived?:number};
 export type Institution={id:string;name:string;description:string;needs:Need[]};
-export type Campaign={id:string;title:string;subtitle:string;description:string;start:string;end:string;status:'draft'|'published'|'closed';accent:string;banner:string;institutions:Institution[];rankingBy:'setor'|'andar'|'gerencia'|'equipe';rankingMode:'quantity'|'points';};
+export type BeneficiaryGroup={label:string;girls:number;boys:number};
+export type Campaign={id:string;title:string;subtitle:string;description:string;start:string;end:string;status:'draft'|'published'|'closed';accent:string;banner:string;institutions:Institution[];beneficiaries?:BeneficiaryGroup[];rankingBy:'setor'|'andar'|'gerencia'|'equipe';rankingMode:'quantity'|'points';};
 export type Donation={id:string;campaignId:string;institutionId:string;needId:string;quantity:number;donor:string;group:string;receivedBy:string;date:string;};
 export type Store={campaigns:Campaign[];donations:Donation[];settings:{pinEnabled:boolean}};
 export const uid=()=>Math.random().toString(36).slice(2,10);
