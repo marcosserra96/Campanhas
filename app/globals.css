@@ -268,3 +268,14 @@
  .collab-cta>a{width:100%;justify-content:center}
  .collab-footer{flex-direction:column;gap:10px}
 }
+
+/* Arte de campanha em todo o hero, preservando área de texto à esquerda */
+.collab-hero.with-campaign-art{background-color:#08314e;background-repeat:no-repeat;background-size:cover;background-position:center center}
+.collab-hero.with-campaign-art .collab-hero-visual{background:none;min-width:0}
+.collab-hero.with-campaign-art .collab-hero-visual:before{display:none}
+.collab-hero.with-campaign-art .collab-hero-body{min-height:370px}
+@media(max-width:760px){
+ .collab-hero.with-campaign-art{background-position:68% center;background-size:cover}
+ .collab-hero.with-campaign-art .collab-hero-body{min-height:310px;background:linear-gradient(90deg,rgba(5,31,52,.78),transparent)}
+ .collab-hero.with-campaign-art .collab-hero-visual{display:none}
+}
