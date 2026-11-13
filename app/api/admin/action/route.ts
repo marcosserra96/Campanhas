@@ -56,6 +56,16 @@ export async function POST(req:NextRequest){
  if(!item||!txt(item.name,150)||!finite(item.target)||item.target===0||!finite(item.points))return failure('Dados do item inválidos.');
  await db('needs','','POST',{institution_id:iid,name:txt(item.name,150),unit:txt(item.unit,30)||'unidade(s)',target:item.target,points:item.points});return NextResponse.json({ok:true});
  }
+ if(op==='editNeed'){
+ const nid=body.needId as string;
+ if(!valid(nid))return failure('Item inválido.');
+ const existing=await needInfo(nid);
+ if(!existing||!await campaignOwnsInstitution(String(camp.id),String(existing.institution_id)))return failure('Item não pertence à campanha.',403);
+ const item=body.need as {name:string;unit:string;target:number;points:number;specification?:string};
+ if(!item||!txt(item.name,150)||!finite(item.target)||item.target===0||!finite(item.points))return failure('Informe um nome, meta e pontuação válidos.');
+ await db('needs','id=eq.'+nid,'PATCH',{name:txt(item.name,150),unit:txt(item.unit,30)||'unidade(s)',target:item.target,points:item.points,specification:txt(item.specification,250)});
+ return NextResponse.json({ok:true});
+ }
  if(op==='deleteNeed'){
  const nid=body.needId as string;if(!valid(nid))return failure('Item inválido.');
  const need=await needInfo(nid);if(!need||!await campaignOwnsInstitution(String(camp.id),String(need.institution_id)))return failure('Item não pertence à campanha.');
