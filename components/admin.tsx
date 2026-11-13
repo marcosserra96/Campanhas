@@ -39,7 +39,7 @@ export default function Admin(){
  const scores=ranking(c,store.donations);
  return <div className="admin-shell">
  <aside className={'sidebar '+(sidebar?'open':'')}>
- <div className="brand"><img src="/brand/energisa.svg" alt="Energisa" className="brand-energisa"/><span className="brand-divider"/><img src="/brand/cipaa.svg" alt="CIPAA Segurança" className="brand-cipaa"/><button className="mobile-close icon-btn" onClick={()=>setSidebar(false)}><X size={20}/></button></div>
+ <div className="brand admin-identity"><img src="/brand/energisa.svg" alt="Energisa" className="brand-energisa" width="122" height="44"/><span className="brand-divider"/><img src="/brand/cipaa.svg" alt="CIPAA Segurança" className="brand-cipaa" width="48" height="48"/><button className="mobile-close icon-btn" onClick={()=>setSidebar(false)}><X size={20}/></button></div>
  <div className="side-label">GERENCIAMENTO</div><nav>{nav.map(([key,label,Icon])=><button key={key} className={'nav-item '+(tab===key?'active':'')} onClick={()=>{setTab(key);setSidebar(false)}}><Icon size={19}/><span>{label}</span></button>)}</nav>
  <div className="side-bottom"><div className="tiny-dot"/><span>Conectado ao Supabase<br/><small>Dados compartilhados</small></span></div>
  </aside>
