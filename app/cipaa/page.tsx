@@ -1,0 +1,1 @@
+import Admin from '@/components/admin';import {StoreProvider} from '@/components/store-provider';export default function Page(){return <StoreProvider><Admin/></StoreProvider>}
