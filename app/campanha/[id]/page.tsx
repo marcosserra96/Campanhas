@@ -1,0 +1,1 @@
+import {StoreProvider} from '@/components/store-provider';import PublicCampaign from '@/components/public-campaign';export default async function Page({params}:{params:Promise<{id:string}>}){const {id}=await params;return <StoreProvider><PublicCampaign id={id}/></StoreProvider>}
