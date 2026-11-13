@@ -54,7 +54,7 @@ export async function POST(req:NextRequest){
  const item=body.need as {name:string;unit:string;target:number;points:number};const iid=body.institutionId as string;
  if(!valid(iid)||!await campaignOwnsInstitution(String(camp.id),iid))return failure('Instituição inválida.');
  if(!item||!txt(item.name,150)||!finite(item.target)||item.target===0||!finite(item.points))return failure('Dados do item inválidos.');
- await db('needs','','POST',{institution_id:iid,name:txt(item.name,150),unit:txt(item.unit,30)||'unidade(s)',target:item.target,points:item.points});return NextResponse.json({ok:true});
+ await db('needs','','POST',{institution_id:iid,name:txt(item.name,150),unit:txt(item.unit,30)||'unidade(s)',target:item.target,points:item.points,specification:txt((item as {specification?:string}).specification,250)});return NextResponse.json({ok:true});
  }
  if(op==='editNeed'){
  const nid=body.needId as string;
