@@ -327,3 +327,34 @@
 @media(max-width:1150px){.urgent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wizard-steps{gap:5px}.wizard-step{padding:11px 8px;gap:7px}}
 @media(max-width:690px){.wizard-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.wizard-step{padding:12px}.urgent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-top span{display:none}.quick-top{padding:10px}.welcome-operational{min-height:auto}.donation-form{padding:18px}.donation-step-label{margin:12px 0}}
 @media(max-width:420px){.wizard-steps{gap:4px;padding:8px}.wizard-step{gap:6px;padding:9px 6px}.wizard-count{width:26px;height:26px}.wizard-step strong{font-size:11px}.wizard-step small{font-size:9px}.urgent-grid{grid-template-columns:1fr 1fr}.urgent-item{padding:9px}.urgent-item strong{font-size:11px}.wizard-actions{flex-wrap:wrap}.wizard-actions .btn{flex:1}}
+
+
+/* Navegação do colaborador por instituição */
+.collab-institution-accordion{display:grid;gap:15px}
+.collab-institution-accordion-card{overflow:hidden;background:#fff;border:1px solid #e2ebef;border-radius:18px;box-shadow:0 3px 14px rgba(17,54,75,.035);transition:border-color .2s,box-shadow .2s}
+.collab-institution-accordion-card.is-expanded{border-color:#a3d8cb;box-shadow:0 8px 28px rgba(17,54,75,.065)}
+.collab-institution-trigger{display:grid;grid-template-columns:58px minmax(0,1fr) 135px 34px;gap:18px;align-items:center;width:100%;padding:25px;text-align:left;border:0;background:#fff;color:#18384c}
+.collab-institution-trigger:hover{background:#fafdfc}
+.collab-institution-symbol{display:grid;place-items:center;width:54px;height:54px;background:#eaf6f1;border-radius:15px;color:#238d6f}
+.collab-institution-summary{display:flex;flex-direction:column;gap:7px;min-width:0}
+.collab-institution-summary>strong{font-size:18px;line-height:1.35;overflow-wrap:anywhere}
+.collab-institution-summary>small{font-size:12px;color:#7b8d9b;line-height:1.55;max-width:560px}
+.collab-institution-track{display:flex;align-items:center;gap:12px;margin-top:7px;max-width:510px}
+.collab-institution-track>.collab-meter{width:min(50%,205px);flex-shrink:0}
+.collab-institution-track>span:last-child{font-size:11px;color:#7992a0}
+.collab-institution-totals{display:flex;align-items:flex-end;flex-direction:column;gap:4px}
+.collab-institution-totals>strong{font-size:29px;color:#d17c37;line-height:1}
+.collab-institution-totals>small{font-size:11px;color:#778d9c}
+.collab-institution-totals>em{font-size:10px;font-style:normal;font-weight:700;color:#348771;margin-top:4px}
+.collab-institution-expand{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#eef6f7;color:#1d8690}
+.collab-institution-details{border-top:1px solid #e6edf1;background:#fff}
+.collab-institution-details-head{padding:23px 24px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:17px}
+.collab-institution-details-head h3{font-size:17px;letter-spacing:-.2px;margin:0 0 5px}
+.collab-institution-details-head p{font-size:12px;color:#7f93a1;margin:0}
+.collab-institution-filters{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.collab-institution-filters .collab-tabs{flex-shrink:0}
+.collab-institution-filters .collab-tabs button{padding:9px 11px}
+.collab-institution-filters .collab-search{min-width:170px}
+.collab-institution-details .collab-need:first-child{border-top:1px solid #edf2f4}
+@media(max-width:780px){.collab-institution-trigger{grid-template-columns:48px minmax(0,1fr) 95px 28px;gap:12px;padding:19px}.collab-institution-symbol{width:46px;height:46px}.collab-institution-summary>strong{font-size:16px}.collab-institution-totals>strong{font-size:24px}.collab-institution-details-head{align-items:flex-start}}
+@media(max-width:540px){.collab-institution-trigger{grid-template-columns:40px minmax(0,1fr) 28px;gap:11px;padding:17px 14px;align-items:start}.collab-institution-symbol{width:39px;height:39px;border-radius:11px}.collab-institution-symbol svg{width:23px}.collab-institution-summary>strong{font-size:15px}.collab-institution-summary>small{font-size:11px}.collab-institution-totals{grid-column:2;grid-row:2;align-items:flex-start;flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:6px;margin-top:2px}.collab-institution-totals>strong{font-size:23px}.collab-institution-totals>em{width:100%;margin-top:0}.collab-institution-expand{grid-column:3;grid-row:1;width:27px;height:27px}.collab-institution-track{flex-wrap:wrap;gap:8px;margin-top:2px}.collab-institution-track>.collab-meter{width:100%}.collab-institution-details-head{padding:18px 13px 12px}.collab-institution-details-head h3{font-size:15px}.collab-institution-filters{width:100%}.collab-institution-filters .collab-tabs{width:100%}.collab-institution-filters .collab-search{width:100%;max-width:none}.collab-institution-accordion{gap:11px}}
