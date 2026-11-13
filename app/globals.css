@@ -62,3 +62,209 @@
 .beneficiaries-breakdown>span{padding:8px 12px;background:#f3f7fa;border-radius:8px;font-size:12px;color:#4b6576}
 .beneficiary-summary{display:flex;flex-wrap:wrap;gap:20px;align-items:center;color:#647c8e;font-size:12px}
 .beneficiary-summary strong{font-size:18px;color:#126c66}
+
+
+/* Portal do colaborador — layout editorial, responsivo e orientado às doações */
+.collab{--collab-accent:#67b700;--collab-navy:#0b304a;--collab-muted:#667e91;background:#f5f8fa;color:#173147;min-height:100vh}
+.collab *{box-sizing:border-box}
+.collab-header{background:#fff;border-bottom:1px solid #e5edf1}
+.collab-header-inner,.collab-content,.collab-footer{width:min(1160px,calc(100% - 48px));margin:0 auto}
+.collab-header-inner{min-height:86px;display:flex;justify-content:space-between;align-items:center;gap:24px}
+.collab-brand{display:flex;align-items:center;gap:13px;flex-shrink:0;min-width:0}
+.collab-logo-energisa{width:152px;height:58px;object-fit:contain}
+.collab-logo-cipaa{width:58px;height:58px;object-fit:contain}
+.collab-brand-rule{display:block;height:43px;width:1px;background:#009bc1}
+.collab-header-right{display:flex;align-items:center;gap:13px}
+.collab-live{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:800;color:#47776d;background:#edf8f0;border-radius:40px;padding:10px 14px}
+.collab-live-dot{width:8px;height:8px;background:#62bb45;border-radius:50%}
+.collab-refresh{width:37px;height:37px;display:grid;place-items:center;border:1px solid #e7edf1;border-radius:11px;background:#fff;color:#63859a}
+.collab-refresh:hover{color:#008caa;background:#f2f9fa}
+.collab-content{padding-top:27px;padding-bottom:50px}
+.collab-hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,.7fr);min-height:355px;background:linear-gradient(117deg,#082b4b 1%,#006f89 100%);border-radius:23px;overflow:hidden;position:relative;isolation:isolate}
+.collab-hero:before{content:"";position:absolute;left:37%;top:-150px;width:370px;height:370px;border:1px solid #ffffff22;border-radius:50%;pointer-events:none}
+.collab-hero-body{position:relative;z-index:2;padding:45px 46px 39px;color:white;display:flex;flex-direction:column;align-items:flex-start}
+.collab-kicker{display:flex;gap:10px;align-items:center;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;font-weight:850;color:#b9ee70}
+.collab-hero h1{font-size:clamp(34px,4.1vw,50px);letter-spacing:-1.5px;line-height:1.1;margin:18px 0 14px;max-width:620px}
+.collab-hero-body>p{color:#d6eaf0;font-size:15px;line-height:1.65;max-width:550px;margin-bottom:13px}
+.collab-hero-meta{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 23px}
+.collab-hero-meta span{display:flex;align-items:center;gap:8px;color:#d9f0f4;font-size:12px}
+.collab-primary-action{display:flex;align-items:center;gap:14px;border-radius:10px;padding:14px 19px;background:#fff;color:#075b76;font-weight:800;font-size:12px;transition:transform .15s}
+.collab-primary-action:hover{transform:translateY(-2px)}
+.collab-hero-visual{position:relative;overflow:hidden;display:flex;justify-content:center;align-items:center}
+.collab-hero-visual:before{content:"";position:absolute;inset:-30%;background:radial-gradient(ellipse,#b6eb7340,transparent 59%)}
+.collab-hero-visual img{position:absolute;width:100%;height:100%;inset:0;object-fit:cover}
+.collab-hero-graphic{text-align:center;color:white;position:relative;display:grid;justify-items:center;gap:7px;padding:30px}
+.collab-graphic-orb{width:190px;height:190px;display:grid;place-items:center;border-radius:50%;background:#ffffff15;border:1px solid #ffffff3a;color:#c6f2a6}
+.collab-hero-graphic>span:last-child{font-weight:800;font-size:14px;max-width:230px;line-height:1.5}
+.collab-alert{margin-top:17px;padding:13px 17px;display:flex;gap:10px;background:#fff5de;color:#88681d;border-radius:11px;font-size:12px}
+.collab-eyebrow{display:block;color:#2c9d72;font-size:10px;font-weight:900;letter-spacing:1.9px}
+.collab-impact{margin-top:37px}
+.collab-impact-intro h2,.collab-section-title h2{font-size:clamp(23px,2.8vw,29px);letter-spacing:-.8px;margin:7px 0 0;line-height:1.2}
+.collab-impact-line{display:flex;justify-content:space-between;gap:20px;align-items:end}
+.collab-impact-line>span{font-size:11px;color:#9aabb6}
+.collab-impact-cards{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:14px;margin-top:19px}
+.collab-impact-cards>div{background:white;border:1px solid #e4edf1;border-radius:16px;min-height:182px}
+.collab-impact-main{padding:25px 27px}
+.collab-impact-main-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}
+.collab-impact-main-top>div{display:flex;flex-direction:column;gap:5px}
+.collab-impact-label{font-size:12px;color:#708598;font-weight:700}
+.collab-impact-main strong{font-size:43px;letter-spacing:-1.4px;line-height:1.1;color:#0c4059}
+.collab-impact-emblem{background:#e8f7ed;color:#38976e;border-radius:12px;padding:11px}
+.collab-meter{height:11px;background:#e7eef0;border-radius:30px;overflow:hidden}
+.collab-meter span{display:block;height:100%;border-radius:30px;background:linear-gradient(90deg,var(--collab-accent),#09aaab);transition:width .3s}
+.collab-meter.slim{height:7px}
+.collab-impact-foot{display:flex;justify-content:space-between;gap:10px;margin-top:11px;font-size:11px;font-weight:700;color:#7b8e9c}
+.collab-stat{padding:24px 22px;display:flex;flex-direction:column;gap:5px}
+.collab-stat-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;margin-bottom:7px}
+.collab-stat-icon.green{background:#edf8ee;color:#238f64}
+.collab-stat-icon.orange{background:#fff3e9;color:#de8b49}
+.collab-stat>span:nth-child(2){font-size:12px;font-weight:700;color:#688092}
+.collab-stat strong{font-size:31px;letter-spacing:-1px;line-height:1.2}
+.collab-stat small{font-size:11px;color:#9babb6}
+.collab-section{margin-top:55px;scroll-margin-top:20px}
+.collab-section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:20px}
+.collab-section-title p{font-size:13px;color:#8293a2;margin:9px 0 0}
+.collab-left-count{display:flex;align-items:center;gap:8px;border-radius:40px;background:#eaf7ed;color:#277e65;padding:11px 15px;font-size:12px;font-weight:800;white-space:nowrap}
+.collab-needs-panel{background:white;border:1px solid #e4edf1;border-radius:18px;overflow:hidden}
+.collab-filters{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:17px 20px;border-bottom:1px solid #edf2f4}
+.collab-tabs{display:flex;gap:5px;padding:4px;border-radius:10px;background:#f2f6f8}
+.collab-tabs button{border:0;background:transparent;color:#708798;border-radius:8px;font-size:12px;font-weight:800;padding:10px 14px;white-space:nowrap}
+.collab-tabs button.selected{background:white;color:#156b82;box-shadow:0 1px 6px #1b466814}
+.collab-search{display:flex;gap:9px;align-items:center;min-height:42px;padding:0 12px;border:1px solid #dfe8ed;border-radius:9px;color:#8298a5;max-width:240px;min-width:0}
+.collab-search input{width:100%;border:0;outline:0;font-size:12px;min-width:0;background:transparent;color:#143a4f}
+.collab-need{display:grid;grid-template-columns:45px minmax(0,1fr) 143px;gap:15px;align-items:center;padding:18px 23px;border-bottom:1px solid #edf2f5}
+.collab-need:last-child{border:0}
+.collab-need-icon{display:grid;place-items:center;width:44px;height:44px;background:#edf6f3;border-radius:12px;color:#22926f}
+.collab-need-body{min-width:0}
+.collab-need-body h3{font-size:14px;font-weight:800;margin:0;line-height:1.5}
+.collab-need-body>p{font-size:11px;margin:3px 0 10px;color:#7e94a3;line-height:1.4}
+.collab-need-track{display:flex;align-items:center;gap:12px;margin-top:12px;max-width:380px}
+.collab-need-track .collab-meter{flex:1}
+.collab-need-track>span{white-space:nowrap;font-size:10px;color:#90a2ae}
+.collab-need-remaining{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.collab-need-remaining strong{color:#d27b3c;font-size:24px;letter-spacing:-.7px;line-height:1}
+.collab-need-remaining span{font-size:10px;color:#8195a3;text-align:right}
+.collab-need.completed{background:#fcfefd}
+.collab-need.completed .collab-need-icon{background:#e8f8ec}
+.collab-need-remaining.complete strong{color:#21916d}
+.collab-list-bottom{display:flex;align-items:center;gap:9px;padding:16px 22px;background:#fbfcfd;color:#8ca0ad;font-size:11px}
+.collab-list-bottom svg{flex-shrink:0}
+.collab-empty{text-align:center;padding:40px 20px;color:#8fa0aa}
+.collab-empty svg{color:#2b9c6e}
+.collab-empty h3{margin:12px 0 6px;color:#406272}
+.collab-empty p{font-size:12px}
+.collab-lower{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:52px}
+.collab-section-title.compact{min-height:94px;margin-bottom:18px;align-items:start}
+.collab-section-title.compact h2{font-size:24px;display:flex;gap:10px;align-items:center}
+.collab-section-title.compact h2 svg{color:#d39a41}
+.collab-ranking,.collab-beneficiary-card{background:white;border:1px solid #e5ecf1;border-radius:17px;min-height:285px;overflow:hidden}
+.collab-ranking-head{display:flex;justify-content:space-between;padding:16px 20px;background:#f9fbfc;color:#91a0ad;font-size:11px;font-weight:700}
+.collab-ranking-row{display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid #eef2f5;font-size:13px}
+.collab-rank-number{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#eef4f7;color:#688da0;font-weight:900}
+.collab-rank-number.rank-0{background:#fff4d9;color:#b88727}
+.collab-rank-number.rank-1{background:#eef2f5;color:#70889a}
+.collab-rank-number.rank-2{background:#fff0e9;color:#b67b54}
+.collab-ranking-row strong{flex:1}
+.collab-ranking-row b{color:#17876e}
+.collab-ranking-empty{display:grid;justify-items:center;align-content:center;padding:38px 26px;color:#8d9ea9;text-align:center;min-height:220px}
+.collab-ranking-empty svg{color:#94b4c0}
+.collab-ranking-empty h3{color:#365a6c;font-size:15px;margin:10px 0 4px}
+.collab-ranking-empty p{font-size:12px;max-width:310px;margin:0}
+.collab-more{border:0;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px;background:#f9fbfc;color:#277b8f;font-size:12px;font-weight:800}
+.collab-beneficiary-card{padding:25px}
+.collab-beneficiary-hero{display:flex;align-items:center;gap:15px;margin-bottom:20px}
+.collab-beneficiary-icon{background:#eaf8ec;color:#278b63;padding:14px;border-radius:14px}
+.collab-beneficiary-hero>div:last-child{display:flex;flex-direction:column;gap:3px}
+.collab-beneficiary-hero strong{font-size:40px;letter-spacing:-1.3px;line-height:1}
+.collab-beneficiary-hero span{color:#80939e;font-size:12px;font-weight:700}
+.collab-beneficiary-pills{display:flex;gap:7px;flex-wrap:wrap}
+.collab-beneficiary-pills span{padding:9px 11px;background:#f1f7f5;border-radius:9px;font-size:11px;color:#5e8079}
+.collab-beneficiary-pills b{color:#216c5d;margin-left:5px}
+.collab-beneficiary-note{color:#8b9ca8;font-size:11px;margin:16px 0}
+.collab-institutions{border-top:1px solid #edf2f5;padding-top:16px;margin-top:18px}
+.collab-institutions>span{color:#9aabb6;font-size:10px;letter-spacing:1px;font-weight:900}
+.collab-institution-name{display:flex;gap:8px;align-items:center;padding-top:11px;font-size:12px;font-weight:700;color:#436f79}
+.collab-institution-name svg{flex-shrink:0;color:#3f9b77}
+.collab-cta{display:flex;align-items:center;gap:23px;border-radius:20px;background:linear-gradient(115deg,#0c3b55,#12657c);padding:33px 37px;color:white;margin-top:54px}
+.collab-cta-icon{display:grid;place-items:center;background:#ffffff1e;border-radius:14px;padding:16px;color:#d1f7a9;flex-shrink:0}
+.collab-cta>div{flex:1}
+.collab-cta h2{font-size:24px;letter-spacing:-.5px;margin:0 0 7px}
+.collab-cta p{color:#d3e8ed;font-size:12px;line-height:1.6;margin:0;max-width:600px}
+.collab-cta>a{background:#fff;color:#105570;border-radius:9px;display:flex;gap:12px;align-items:center;padding:13px 18px;font-size:12px;font-weight:800;white-space:nowrap}
+.collab-footer{display:flex;justify-content:space-between;gap:25px;border-top:1px solid #e3ebef;padding-top:24px;padding-bottom:33px;color:#8294a0;font-size:11px}
+.collab-footer>div{display:flex;flex-direction:column;gap:3px;font-weight:800}
+.collab-footer small{max-width:450px;line-height:1.6;color:#9daab2;font-size:10px}
+.collab-loading{min-height:70vh;display:grid;place-content:center;justify-items:center;color:#6d8c9a}
+@media(max-width:950px){
+ .collab-hero{grid-template-columns:1.2fr .8fr}
+ .collab-hero-body{padding:35px 32px}
+ .collab-hero h1{font-size:38px}
+ .collab-impact-cards{grid-template-columns:1.2fr 1fr 1fr}
+ .collab-impact-main{padding:20px}
+ .collab-stat{padding:20px}
+}
+@media(max-width:760px){
+ .collab-hero{grid-template-columns:1fr;min-height:unset}
+ .collab-hero-body{padding:36px 30px}
+ .collab-hero-visual{min-height:175px}
+ .collab-hero-graphic{display:flex;align-items:center;gap:20px}
+ .collab-graphic-orb{height:125px;width:125px}
+ .collab-graphic-orb svg{width:74px}
+ .collab-hero-visual.has-banner{min-height:260px}
+ .collab-impact-cards{grid-template-columns:1fr 1fr}
+ .collab-impact-main{grid-column:1/-1}
+ .collab-section-title{flex-wrap:wrap;align-items:start}
+ .collab-lower{grid-template-columns:1fr}
+ .collab-section-title.compact{min-height:unset}
+ .collab-filters{flex-wrap:wrap}
+ .collab-search{max-width:none;flex:1;min-width:200px}
+}
+@media(max-width:540px){
+ .collab-header-inner,.collab-content,.collab-footer{width:calc(100% - 30px)}
+ .collab-header-inner{min-height:72px;gap:7px}
+ .collab-brand{gap:7px}
+ .collab-logo-energisa{width:114px;height:45px}
+ .collab-logo-cipaa{width:43px;height:43px}
+ .collab-brand-rule{height:33px}
+ .collab-live{display:none}
+ .collab-hero{border-radius:17px}
+ .collab-hero-body{padding:29px 23px}
+ .collab-hero h1{font-size:34px;letter-spacing:-1px}
+ .collab-hero-body>p{font-size:13px}
+ .collab-hero-meta{gap:11px}
+ .collab-hero-meta span{font-size:11px}
+ .collab-hero-visual{min-height:155px}
+ .collab-impact{margin-top:29px}
+ .collab-impact-line{align-items:start;flex-direction:column;gap:6px}
+ .collab-impact-cards{gap:10px}
+ .collab-impact-cards>div{min-height:unset}
+ .collab-impact-main{padding:21px}
+ .collab-stat{padding:15px}
+ .collab-stat strong{font-size:26px}
+ .collab-stat small{font-size:10px}
+ .collab-stat>span:nth-child(2){font-size:11px}
+ .collab-section{margin-top:40px}
+ .collab-section-title{gap:10px}
+ .collab-left-count{font-size:11px;padding:9px 12px}
+ .collab-filters{padding:12px}
+ .collab-tabs{width:100%;gap:0;justify-content:space-between}
+ .collab-tabs button{padding:10px 6px;font-size:10px;flex:1}
+ .collab-search{min-width:100%;width:100%}
+ .collab-need{grid-template-columns:34px minmax(0,1fr);padding:16px 13px;gap:10px}
+ .collab-need-icon{width:34px;height:34px;border-radius:9px}
+ .collab-need-icon svg{width:19px}
+ .collab-need-body h3{font-size:13px}
+ .collab-need-remaining{grid-column:2;align-items:flex-start;flex-direction:row;gap:7px;align-items:center;margin-top:-4px}
+ .collab-need-remaining strong{font-size:17px}
+ .collab-need-remaining span{font-size:10px}
+ .collab-need-track{flex-direction:column;align-items:stretch;gap:6px;margin-top:8px}
+ .collab-need-track>span{font-size:10px}
+ .collab-need-track .collab-meter{width:100%}
+ .collab-list-bottom{padding:14px;font-size:10px}
+ .collab-lower{margin-top:37px;gap:29px}
+ .collab-cta{flex-wrap:wrap;padding:24px;gap:12px;margin-top:37px}
+ .collab-cta h2{font-size:22px}
+ .collab-cta>div{flex-basis:calc(100% - 80px)}
+ .collab-cta>a{width:100%;justify-content:center}
+ .collab-footer{flex-direction:column;gap:10px}
+}
