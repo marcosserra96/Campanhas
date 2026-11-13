@@ -38,7 +38,7 @@ export default function PublicCampaign({id}:{id:string}){
    <div className="collab-header-right"><span className="collab-live"><span className="collab-live-dot"/>{c.status==='closed'?'Campanha encerrada':'Campanha solidária'}</span><button className="collab-refresh" onClick={()=>void refresh()} title="Atualizar informações" aria-label="Atualizar informações"><RefreshCw size={17}/></button></div>
   </div></header>
   <main className="collab-content">
-   <section className="collab-hero">
+   <section className={"collab-hero "+(c.banner?"with-campaign-art":"")} style={c.banner?{backgroundImage:"linear-gradient(90deg,rgba(5,33,55,.97) 0%,rgba(5,37,58,.84) 40%,rgba(5,37,58,.12) 73%),url("+JSON.stringify(c.banner)+")"}:undefined}>
     <div className="collab-hero-body">
      <div className="collab-kicker"><Gift size={16}/> {c.subtitle||'Uma iniciativa da CIPAA'}</div>
      <h1>{c.title}</h1>
@@ -47,7 +47,7 @@ export default function PublicCampaign({id}:{id:string}){
      <a href="#materiais" className="collab-primary-action">Veja o que ainda precisamos <ArrowDown size={17}/></a>
     </div>
     <div className={'collab-hero-visual '+(c.banner?'has-banner':'')}>
-     {c.banner?<img src={c.banner} alt="Imagem de divulgação da campanha"/>:<div className="collab-hero-graphic"><span className="collab-graphic-orb"><Gift size={110} strokeWidth={1.15}/></span><span>{isChristmas?'Natal é tempo de compartilhar.':'Faça parte dessa corrente do bem.'}</span></div>}
+     {c.banner?<div className="collab-art-credit" aria-hidden="true"/>:<div className="collab-hero-graphic"><span className="collab-graphic-orb"><Gift size={110} strokeWidth={1.15}/></span><span>{isChristmas?'Natal é tempo de compartilhar.':'Faça parte dessa corrente do bem.'}</span></div>}
     </div>
    </section>
    {c.status==='draft'&&<div className="collab-alert"><Info size={17}/> Esta campanha está em rascunho. As informações são uma prévia.</div>}
