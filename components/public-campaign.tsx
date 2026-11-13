@@ -4,8 +4,8 @@ import {useStore} from '@/components/store-provider';
 import {total,progress,ranking} from '@/lib/types';
 import {Gift,HeartHandshake,Trophy,Building2,CalendarDays,Heart,CheckCircle2} from 'lucide-react';
 export default function PublicCampaign({id}:{id:string}){
- const {store,ready}=useStore();if(!ready)return <div className="loading">Carregando campanha…</div>;
- const c=store.campaigns.find(c=>c.id===id);if(!c)return <div className="public-404"><h1>Campanha não encontrada</h1><Link href="/">Voltar à página inicial</Link></div>;
+ const {store,ready,error}=useStore();if(!ready)return <div className="loading">Carregando campanha…</div>;
+ const c=store.campaigns.find(c=>c.id===id);if(!c)return <div className="public-404" style={{padding:24,textAlign:'center'}}><h1>Campanha ainda não disponível</h1><p>{error||'Esta campanha ainda não foi publicada pela CIPAA.'}</p><Link href="/">Voltar à página inicial</Link></div>;
  const t=total(c),scores=ranking(c,store.donations);const percent=progress(t.received,t.target);
  return <div className="public" style={{'--campaign-accent':c.accent} as React.CSSProperties}>
  <header className="public-top"><Link href="/" className="public-brand"><span className="brandmark">e</span><span><b>energisa</b><small>CIPAA • CAMPANHAS</small></span></Link><span className="public-top-tag"><Heart size={15}/> Juntos para fazer a diferença</span></header>
