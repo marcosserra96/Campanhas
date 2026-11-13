@@ -13,6 +13,7 @@ export default function PublicCampaign({id}:{id:string}){
  const {store,ready,error,refresh}=useStore();
  const [filter,setFilter]=useState<'pending'|'all'|'done'>('pending');
  const [search,setSearch]=useState('');
+ const [openInstitution,setOpenInstitution]=useState<string|null>(null);
  const [expanded,setExpanded]=useState(false);
  if(!ready)return <div className="collab-loading"><RefreshCw size={24}/><p>Carregando dados da campanha…</p></div>;
  const c=store.campaigns.find(x=>x.id===id);
@@ -20,9 +21,6 @@ export default function PublicCampaign({id}:{id:string}){
  const summary=total(c);
  const pct=percentage(summary.received,summary.target);
  const pending=Math.max(0,summary.target-summary.received);
- const needs=c.institutions.flatMap(i=>i.needs.map(n=>({...n,institutionId:i.id,institutionName:i.name})));
- const remaining=needs.filter(n=>!isDone(n)).length;
- const filtered=needs.filter(n=>(filter==='all'||(filter==='pending'?!isDone(n):isDone(n)))&&[n.name,n.specification||'',n.institutionName].join(' ').toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR'))).sort((a,b)=>filter==='all'?Number(isDone(a))-Number(isDone(b)):0);
  const scores=ranking(c,store.donations);
  const beneficiaries=c.beneficiaries||[];
  const children=beneficiaries.reduce((sum,b)=>sum+b.girls+b.boys,0);
@@ -60,24 +58,34 @@ export default function PublicCampaign({id}:{id:string}){
     </div>
    </section>
    <section className="collab-section collab-materials" id="materiais">
-    <div className="collab-section-title"><div><span className="collab-eyebrow">SUA AJUDA FAZ A DIFERENÇA</span><h2>O que ainda precisamos receber?</h2><p>Escolha um material e entregue a um membro da CIPAA. Cada contribuição conta!</p></div><div className="collab-left-count"><Gift size={18}/>{remaining} {remaining===1?'material pendente':'materiais pendentes'}</div></div>
-    <div className="collab-needs-panel">
-     <div className="collab-filters">
-      <div className="collab-tabs" role="group" aria-label="Filtrar materiais">
-       <button className={filter==='pending'?'selected':''} onClick={()=>setFilter('pending')}>Ainda precisamos</button>
-       <button className={filter==='all'?'selected':''} onClick={()=>setFilter('all')}>Todos</button>
-       <button className={filter==='done'?'selected':''} onClick={()=>setFilter('done')}>Concluídos</button>
-      </div>
-      <label className="collab-search"><Search size={17}/><input aria-label="Buscar materiais" placeholder="Buscar material..." value={search} onChange={e=>setSearch(e.target.value)}/></label>
-     </div>
-     <div className="collab-need-list">{filtered.map(n=>{const left=Math.max(0,n.target-n.received),p=percentage(n.received,n.target),done=isDone(n);return <article className={'collab-need '+(done?'completed':'')} key={n.id}>
-      <div className="collab-need-icon">{done?<CheckCircle2 size={21}/>:<School size={21}/>}</div>
-      <div className="collab-need-body"><h3>{n.name}</h3>{n.specification&&<p>{n.specification}</p>}<div className="collab-need-track"><div className="collab-meter slim"><span style={{width:p+'%'}}/></div><span>{number(n.received)} de {number(n.target)} recebidos</span></div></div>
-      <div className={'collab-need-remaining '+(done?'complete':'')}><strong>{done?<Check size={22}/>:number(left)}</strong><span>{done?'Meta atingida':(n.unit==='unidade(s)'?'unidades faltando':n.unit+' faltando')}</span></div>
-     </article>})}
-     {!filtered.length&&<div className="collab-empty"><CheckCircle2 size={34}/><h3>{filter==='done'?'Nenhum item concluído ainda.':'Nenhum material encontrado.'}</h3><p>Experimente outra busca ou filtro.</p></div>}
-     </div>
-     <div className="collab-list-bottom"><Info size={16}/><span>As quantidades consideram as entregas já contabilizadas pela CIPAA.</span></div>
+    <div className="collab-section-title"><div><span className="collab-eyebrow">SUA AJUDA FAZ A DIFERENÇA</span><h2>Escolha uma instituição para ajudar</h2><p>Veja o que cada instituição precisa e acompanhe o progresso das doações.</p></div><div className="collab-left-count"><HeartHandshake size={18}/>{c.institutions.length} {c.institutions.length===1?'instituição':'instituições'}</div></div>
+    <div className="collab-institution-accordion">
+     {c.institutions.map(inst=>{
+       const target=inst.needs.reduce((sum,n)=>sum+n.target,0);
+       const received=inst.needs.reduce((sum,n)=>sum+n.received,0);
+       const missing=Math.max(0,target-received);
+       const pendingItems=inst.needs.filter(n=>!isDone(n)).length;
+       const isOpen=openInstitution===inst.id;
+       const visible=inst.needs.filter(n=>(filter==='all'||(filter==='pending'?!isDone(n):isDone(n)))&&[n.name,n.specification||''].join(' ').toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR'))).sort((a,b)=>filter==='all'?Number(isDone(a))-Number(isDone(b)):0);
+       return <article className={'collab-institution-accordion-card '+(isOpen?'is-expanded':'')} key={inst.id}>
+        <button type="button" className="collab-institution-trigger" onClick={()=>{setOpenInstitution(isOpen?null:inst.id);setFilter('pending');setSearch('')}} aria-expanded={isOpen} aria-controls={'institution-details-'+inst.id}>
+         <span className="collab-institution-symbol"><HeartHandshake size={27}/></span>
+         <span className="collab-institution-summary"><strong>{inst.name}</strong>{inst.description&&<small>{inst.description}</small>}<span className="collab-institution-track"><span className="collab-meter slim"><span style={{width:percentage(received,target)+'%'}}/></span><span>{number(received)} de {number(target)} recebidos</span></span></span>
+         <span className="collab-institution-totals"><strong>{number(missing)}</strong><small>{missing===0?'Meta atingida':'unidades faltando'}</small><em>{pendingItems} {pendingItems===1?'item pendente':'itens pendentes'}</em></span>
+         <span className="collab-institution-expand" aria-hidden="true">{isOpen?<ChevronUp size={20}/>:<ChevronDown size={20}/>}</span>
+        </button>
+        {isOpen&&<div className="collab-institution-details" id={'institution-details-'+inst.id}>
+         <div className="collab-institution-details-head"><div><h3>O que esta instituição ainda precisa?</h3><p>Você pode doar itens separados, sem precisar completar um kit.</p></div><div className="collab-institution-filters"><div className="collab-tabs" role="group" aria-label="Filtrar materiais"><button className={filter==='pending'?'selected':''} onClick={()=>setFilter('pending')}>Pendentes</button><button className={filter==='all'?'selected':''} onClick={()=>setFilter('all')}>Todos</button><button className={filter==='done'?'selected':''} onClick={()=>setFilter('done')}>Concluídos</button></div><label className="collab-search"><Search size={17}/><input aria-label="Buscar materiais desta instituição" placeholder="Buscar item..." value={search} onChange={e=>setSearch(e.target.value)}/></label></div></div>
+         <div className="collab-need-list">{visible.map(n=>{const left=Math.max(0,n.target-n.received),p=percentage(n.received,n.target),done=isDone(n);return <div className={'collab-need '+(done?'completed':'')} key={n.id}>
+          <div className="collab-need-icon">{done?<CheckCircle2 size={21}/>:<School size={21}/>}</div>
+          <div className="collab-need-body"><h3>{n.name}</h3>{n.specification&&<p>{n.specification}</p>}<div className="collab-need-track"><div className="collab-meter slim"><span style={{width:p+'%'}}/></div><span>{number(n.received)} de {number(n.target)} recebidos</span></div></div>
+          <div className={'collab-need-remaining '+(done?'complete':'')}><strong>{done?<Check size={22}/>:number(left)}</strong><span>{done?'Meta atingida':(n.unit==='unidade(s)'?'unidades faltando':n.unit+' faltando')}</span></div>
+         </div>})}{!visible.length&&<div className="collab-empty"><CheckCircle2 size={34}/><h3>{filter==='done'?'Nenhum item concluído ainda.':'Nenhum material encontrado.'}</h3><p>Experimente outro filtro ou busca.</p></div>}</div>
+         <div className="collab-list-bottom"><Info size={16}/><span>Quantidades atualizadas conforme os registros da CIPAA. Entregue sua doação a um membro da comissão.</span></div>
+        </div>}
+       </article>;
+     })}
+     {!c.institutions.length&&<div className="collab-empty"><HeartHandshake size={35}/><h3>Instituições em breve</h3><p>A CIPAA divulgará as instituições participantes aqui.</p></div>}
     </div>
    </section>
    <div className="collab-lower">
