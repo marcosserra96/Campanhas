@@ -49,3 +49,16 @@
  .sidebar .admin-identity .brand-energisa{max-width:110px}
  .sidebar .admin-identity .brand-cipaa{width:43px;height:43px}
 }
+
+.need-spec{display:block;margin-top:4px;color:#7b90a2;font-size:11px;font-weight:500;line-height:1.4}
+.beneficiaries-panel{background:#fff;border:1px solid #e5edf3;border-radius:20px;padding:28px;margin-top:32px}
+.beneficiaries-panel h2{font-size:25px;margin:8px 0}
+.beneficiaries-panel p{font-size:13px;color:#74869b}
+.beneficiaries-stats{display:flex;gap:18px;flex-wrap:wrap;margin:22px 0}
+.beneficiaries-stats>div{background:#f2f9f7;padding:16px 24px;border-radius:12px;min-width:115px;display:flex;flex-direction:column;gap:4px}
+.beneficiaries-stats strong{font-size:29px;color:#126c66}
+.beneficiaries-stats span{font-size:11px;color:#557a7a}
+.beneficiaries-breakdown{display:flex;gap:9px;flex-wrap:wrap}
+.beneficiaries-breakdown>span{padding:8px 12px;background:#f3f7fa;border-radius:8px;font-size:12px;color:#4b6576}
+.beneficiary-summary{display:flex;flex-wrap:wrap;gap:20px;align-items:center;color:#647c8e;font-size:12px}
+.beneficiary-summary strong{font-size:18px;color:#126c66}
