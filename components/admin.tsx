@@ -3,7 +3,7 @@ import {useState} from 'react';
 import Link from 'next/link';
 import {useStore} from '@/components/store-provider';
 import {Campaign,Institution,Need,Donation,uid,total,progress,ranking} from '@/lib/types';
-import {LayoutDashboard,Megaphone,Building2,PackageCheck,Trophy,QrCode,Settings,Plus,ChevronLeft,ExternalLink,Trash2,Download,Save,Menu,X,Gift,CalendarDays,Copy,Check,Info,BarChart3,ArrowRight,ChevronRight,Pencil,Users,ClipboardCheck,Clock3,AlertCircle} from 'lucide-react';
+import {LayoutDashboard,Megaphone,Building2,PackageCheck,Trophy,QrCode,Settings,Plus,ChevronLeft,ExternalLink,Trash2,Download,Save,Menu,X,Gift,CalendarDays,Copy,Check,Info,BarChart3,ArrowRight,ChevronRight,Pencil,Users,ClipboardCheck,Clock3,AlertCircle,CheckCircle2} from 'lucide-react';
 import {QRCodeSVG} from 'qrcode.react';
 
 type Tab='overview'|'campaigns'|'donations'|'ranking'|'settings';
