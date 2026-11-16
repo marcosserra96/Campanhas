@@ -79,11 +79,32 @@ export async function POST(req:NextRequest){
  await db('donations','','POST',{campaign_id:camp.id,institution_id:need.institution_id,need_id:nid,quantity,donor_name:txt(body.donor,160),group_name:txt(body.group,160),received_by:txt(body.receivedBy,160)});
  return NextResponse.json({ok:true});
  }
- if(op==='deleteDonation'){
- const did=body.donationId;if(!valid(did))return failure('Lançamento inválido.');
- const donation=await db<Row[]>('donations','select=id&campaign_id=eq.'+camp.id+'&id=eq.'+did);
- if(!donation.length)return failure('Doação não encontrada.',404);
- await db('donations','id=eq.'+did,'DELETE');return NextResponse.json({ok:true});
+ if(op==='editDonation'||op==='voidDonation'||op==='deleteDonation'){
+  const did=body.donationId as string;
+  if(!valid(did))return failure('Lançamento inválido.');
+  const rows=await db<Row[]>('donations','select=id,need_id,institution_id,quantity,donor_name,group_name,received_by,voided_at&campaign_id=eq.'+camp.id+'&id=eq.'+did);
+  const original=rows[0];
+  if(!original||original.voided_at)return failure('Este lançamento não existe ou já foi cancelado.',404);
+  const actor=txt(body.actor,160);
+  const reason=txt(body.reason,500);
+  if(actor.length<2||reason.length<5)return failure('Informe seu nome e o motivo da alteração (mínimo 5 caracteres).');
+  if(op==='voidDonation'||op==='deleteDonation'){
+   await db('donations','id=eq.'+did+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{
+    voided_at:new Date().toISOString(),voided_by:actor,edited_by:actor,edit_reason:reason
+   });
+   return NextResponse.json({ok:true});
+  }
+  const nid=body.needId as string;
+  const quantity=body.quantity as number;
+  const donor=txt(body.donor,160),group=txt(body.group,160),receivedBy=txt(body.receivedBy,160);
+  if(!valid(nid)||!finite(quantity)||quantity<=0||!donor||!group||!receivedBy)return failure('Dados da correção inválidos.');
+  const need=await needInfo(nid);
+  if(!need||!await campaignOwnsInstitution(String(camp.id),String(need.institution_id)))return failure('O item não pertence a esta campanha.',403);
+  await db('donations','id=eq.'+did+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{
+   need_id:nid,institution_id:need.institution_id,quantity,
+   donor_name:donor,group_name:group,received_by:receivedBy,edited_by:actor,edit_reason:reason
+  });
+  return NextResponse.json({ok:true});
  }
  return failure('Operação não suportada.');
  }catch(err){console.error('Erro administrativo',err);return failure('Não foi possível concluir a operação. Verifique os dados e tente novamente.',500)}
