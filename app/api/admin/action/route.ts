@@ -83,6 +83,22 @@ export async function POST(req:NextRequest){
   }
   return NextResponse.json({ok:true});
  }
+ if(op==='applyPoints'){
+  const category=txt(body.category,20),points=body.points;
+  if(!['needs','gifts'].includes(category)||!finite(points))return failure('Pontuação inválida.');
+  const institutions=await db<Row[]>('institutions','select=id&campaign_id=eq.'+camp.id);
+  if(!institutions.length)return failure('Cadastre uma instituição antes de configurar os pontos.');
+  const ids=institutions.map(i=>String(i.id)).filter(valid);
+  if(!ids.length)return failure('Instituições inválidas.');
+  if(category==='needs'){
+   await db('needs','institution_id=in.('+ids.join(',')+')','PATCH',{points});
+  }else{
+   await db('gift_requests','institution_id=in.('+ids.join(',')+')&status=in.(available,reserved)','PATCH',{
+    points,changed_by:txt(body.actor,160)||'CIPAA',change_reason:'Aplicação em lote de pontuação na campanha'
+   });
+  }
+  return NextResponse.json({ok:true});
+ }
  if(op==='addGift'){
   const iid=body.institutionId as string;
   if(!valid(iid)||!await campaignOwnsInstitution(String(camp.id),iid))return failure('Instituição inválida.');
