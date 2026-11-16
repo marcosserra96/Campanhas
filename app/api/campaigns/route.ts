@@ -13,7 +13,7 @@ export async function GET(request:NextRequest){
  const rows=await db<Row[]>('campaigns','select=*&order=created_at.desc'+(admin&&wantAll?'':'&status=eq.published'));
  const campaigns:Campaign[]=await Promise.all(rows.map(async r=>{
   const inst=await db<Row[]>('institutions','select=*&campaign_id=eq.'+r.id+'&order=created_at.asc');
-  const institutions=await Promise.all(inst.map(async i=>{
+  const institutions:Campaign['institutions']=await Promise.all(inst.map(async i=>{
    const needs=await db<Row[]>('needs','select=*&institution_id=eq.'+i.id+'&order=created_at.asc');
    return {id:i.id,name:i.name,description:i.description,needs:needs.map(n=>({id:n.id,name:n.name,unit:n.unit,target:Number(n.target),received:Number(n.opening_received||0),mode:n.mode==='free'?'free':'target' as 'free'|'target',openingReceived:Number(n.opening_received||0),specification:n.specification||'',points:Number(n.points)}))};
   }));
