@@ -141,6 +141,24 @@ export async function POST(req:NextRequest){
   if(!changed.length)return failure('Esse presente foi alterado por outra pessoa. Atualize a página.',409);
   return NextResponse.json({ok:true});
  }
+ if(op==='bulkReceiveDonations'){
+  const iid=body.institutionId as string;
+  if(!valid(iid)||!await campaignOwnsInstitution(String(camp.id),iid))return failure('Instituição inválida.');
+  const items=body.items as Array<{name:string;quantity:number;donor:string;group:string;receivedBy:string}>;
+  if(!Array.isArray(items)||!items.length||items.length>200)return failure('Importe entre 1 e 200 doações por vez.');
+  const needs=await db<Row[]>('needs','select=id,name&institution_id=eq.'+iid);
+  const groups=await db<Row[]>('campaign_groups','select=name&campaign_id=eq.'+camp.id);
+  const mapped=[] as Array<Record<string,unknown>>;
+  for(let index=0;index<items.length;index++){
+   const it=items[index];const itemName=txt(it?.name,150),quantity=it?.quantity,donor=txt(it?.donor,160),group=txt(it?.group,120),receivedBy=txt(it?.receivedBy,160);
+   const matched=needs.filter(n=>String(n.name).toLocaleLowerCase('pt-BR')===itemName.toLocaleLowerCase('pt-BR'));
+   if(matched.length!==1||!finite(quantity)||quantity<=0||!donor||!group||!receivedBy||!groups.some(g=>String(g.name).toLocaleLowerCase('pt-BR')===group.toLocaleLowerCase('pt-BR')))
+     return failure('Verifique material, quantidade, doador, grupo e responsável na linha '+(index+2)+'.');
+   mapped.push({campaign_id:camp.id,institution_id:iid,need_id:matched[0].id,quantity,donor_name:donor,group_name:String(groups.find(g=>String(g.name).toLocaleLowerCase('pt-BR')===group.toLocaleLowerCase('pt-BR'))!.name),received_by:receivedBy});
+  }
+  await db('donations','','POST',mapped);
+  return NextResponse.json({ok:true,imported:mapped.length});
+ }
  if(op==='bulkAddGifts'){
   const iid=body.institutionId as string;
   if(!valid(iid)||!await campaignOwnsInstitution(String(camp.id),iid))return failure('Instituição inválida.');
