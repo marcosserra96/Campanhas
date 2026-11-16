@@ -12,6 +12,7 @@ const failure=(message:string,status=400)=>NextResponse.json({error:message},{st
 async function findCampaign(slug:string){const data=await db<Row[]>('campaigns','select=id,slug,status&slug=eq.'+encodeURIComponent(slug));return data[0]}
 async function needInfo(needId:string){const ns=await db<Row[]>('needs','select=id,institution_id& id=eq.'.replace(' ','')+needId);return ns[0]}
 async function campaignOwnsInstitution(campaignId:string,institutionId:string){const inst=await db<Row[]>('institutions','select=id&campaign_id=eq.'+campaignId+'&id=eq.'+institutionId);return inst.length>0}
+async function validGroup(campaignId:string,name:string){const rows=await db<Row[]>('campaign_groups','select=name&campaign_id=eq.'+campaignId);return rows.some(r=>String(r.name).toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR'))}
 export async function POST(req:NextRequest){
  if(!configured())return failure('Supabase ainda não configurado.',503);
  if(!await isAdmin())return failure('Acesso restrito à CIPAA.',401);
@@ -34,6 +35,54 @@ export async function POST(req:NextRequest){
  }
  const slug=txt(body.campaignId,100);const camp=await findCampaign(slug);
  if(!camp)return failure('Campanha não encontrada.',404);
+ if(op==='addCampaignGroup'){
+  const name=txt(body.name,120);
+  if(!name)return failure('Informe o nome do setor ou grupo.');
+  const existing=await db<Row[]>('campaign_groups','select=id,name&campaign_id=eq.'+camp.id);
+  if(existing.some(g=>String(g.name).trim().toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))return failure('Esse setor/grupo já está cadastrado.');
+  await db('campaign_groups','','POST',{campaign_id:camp.id,name});
+  return NextResponse.json({ok:true});
+ }
+ if(op==='removeCampaignGroup'){
+  const gid=body.groupId;
+  if(!valid(gid))return failure('Grupo inválido.');
+  const rows=await db<Row[]>('campaign_groups','select=id,name&campaign_id=eq.'+camp.id+'&id=eq.'+gid);
+  if(!rows.length)return failure('Grupo não encontrado.',404);
+  const groupName=String(rows[0].name);
+  const active=await db<Row[]>('donations','select=id,group_name&campaign_id=eq.'+camp.id+'&voided_at=is.null');
+  const prior=await db<Row[]>('opening_attributions','select=id,group_name&campaign_id=eq.'+camp.id+'&voided_at=is.null');
+  if([...active,...prior].some(r=>String(r.group_name).toLocaleLowerCase('pt-BR')===groupName.toLocaleLowerCase('pt-BR')))return failure('Este grupo possui registros de arrecadação e não pode ser removido.');
+  await db('campaign_groups','id=eq.'+gid+'&campaign_id=eq.'+camp.id,'DELETE');
+  return NextResponse.json({ok:true});
+ }
+ if(op==='attributeOpening'){
+  const nid=body.needId as string;const quantity=body.quantity as number;
+  const donor=txt(body.donor,160),group=txt(body.group,120),actor=txt(body.actor,160);
+  if(!valid(nid)||!finite(quantity)||quantity<=0||!donor||!group||actor.length<2)return failure('Preencha material, quantidade, doador, grupo e responsável CIPAA.');
+  const need=await needInfo(nid);
+  if(!need||!await campaignOwnsInstitution(String(camp.id),String(need.institution_id)))return failure('Material não pertence à campanha.');
+  if(!await validGroup(String(camp.id),group))return failure('Selecione um grupo cadastrado na campanha.');
+  await db('opening_attributions','','POST',{campaign_id:camp.id,institution_id:need.institution_id,need_id:nid,quantity,donor_name:donor,group_name:group,recorded_by:actor});
+  return NextResponse.json({ok:true});
+ }
+ if(op==='editOpening'||op==='voidOpening'){
+  const id=body.attributionId;
+  if(!valid(id))return failure('Atribuição inválida.');
+  const rows=await db<Row[]>('opening_attributions','select=id,need_id,voided_at&campaign_id=eq.'+camp.id+'&id=eq.'+id);
+  if(!rows.length||rows[0].voided_at)return failure('Atribuição já cancelada ou inexistente.',404);
+  const actor=txt(body.actor,160),reason=txt(body.reason,500);
+  if(actor.length<2||reason.length<5)return failure('Informe responsável e motivo (mínimo de 5 caracteres).');
+  if(op==='voidOpening'){
+   const changed=await db<Row[]>('opening_attributions','id=eq.'+id+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{voided_at:new Date().toISOString(),voided_by:actor,edited_by:actor,edit_reason:reason});
+   if(!changed.length)return failure('Atribuição já alterada. Atualize a lista.',409);
+  }else{
+   const quantity=body.quantity as number,donor=txt(body.donor,160),group=txt(body.group,120);
+   if(!finite(quantity)||quantity<=0||!donor||!group||!await validGroup(String(camp.id),group))return failure('Preencha quantidade, doador e grupo cadastrado.');
+   const changed=await db<Row[]>('opening_attributions','id=eq.'+id+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{quantity,donor_name:donor,group_name:group,edited_by:actor,edit_reason:reason});
+   if(!changed.length)return failure('Atribuição já alterada. Atualize a lista.',409);
+  }
+  return NextResponse.json({ok:true});
+ }
  if(op==='saveInstitution'){
  const item=body.institution as {id?:string;name:string;description?:string};
  if(!item||!txt(item.name,160))return failure('Informe a instituição.');
@@ -75,6 +124,7 @@ export async function POST(req:NextRequest){
  if(op==='receiveDonation'){
  const nid=body.needId as string;const quantity=body.quantity as number;
  if(!valid(nid)||!finite(quantity)||quantity===0||!txt(body.donor,160)||!txt(body.group,160)||!txt(body.receivedBy,160))return failure('Dados da doação inválidos.');
+ if(!await validGroup(String(camp.id),txt(body.group,120)))return failure('Selecione um setor/grupo configurado na campanha.');
  const need=await needInfo(nid);if(!need||!await campaignOwnsInstitution(String(camp.id),String(need.institution_id)))return failure('Item não pertence à campanha.');
  await db('donations','','POST',{campaign_id:camp.id,institution_id:need.institution_id,need_id:nid,quantity,donor_name:txt(body.donor,160),group_name:txt(body.group,160),received_by:txt(body.receivedBy,160)});
  return NextResponse.json({ok:true});
@@ -99,6 +149,7 @@ export async function POST(req:NextRequest){
   const quantity=body.quantity as number;
   const donor=txt(body.donor,160),group=txt(body.group,160),receivedBy=txt(body.receivedBy,160);
   if(!valid(nid)||!finite(quantity)||quantity<=0||!donor||!group||!receivedBy)return failure('Dados da correção inválidos.');
+  if(!await validGroup(String(camp.id),group))return failure('Selecione um grupo cadastrado na campanha.');
   const need=await needInfo(nid);
   if(!need||!await campaignOwnsInstitution(String(camp.id),String(need.institution_id)))return failure('O item não pertence a esta campanha.',403);
   const changed=await db<Row[]>('donations','id=eq.'+did+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{
