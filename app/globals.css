@@ -459,3 +459,60 @@
 .opening-history .donation-v2-table-scroll table{min-width:610px}
 .opening-history td .btn{min-height:35px}
 @media(max-width:700px){.opening-count{white-space:normal}.opening-panel .panel-header{flex-wrap:wrap}.opening-form{padding:15px}.campaign-groups-panel .inline-form{flex-wrap:wrap}.campaign-groups-panel .inline-form .btn{width:100%}}
+
+
+/* Presentes, importação e modalidades de arrecadação */
+.campaign-extras .panel-header h3,.gift-operations .panel-header h3{display:flex;align-items:center;gap:9px}
+.campaign-extras .panel-header h3 svg,.gift-operations .panel-header h3 svg{color:#1493a3;flex-shrink:0}
+.campaign-extras h4{margin:15px 0 12px;font-size:14px;color:#355569}
+.gift-admin-summary{display:flex;flex-wrap:wrap;gap:12px;padding:15px;background:#f6fafb;border-radius:12px;margin-bottom:17px}
+.gift-admin-summary>span{display:flex;align-items:center;gap:6px;font-size:12px;color:#688092}
+.gift-admin-summary>span b{font-size:20px;color:#0e7585}
+.gift-admin-list{margin-top:22px;display:grid;gap:15px}
+.gift-admin-institution{border:1px solid #e5ecef;border-radius:12px;overflow:hidden}
+.gift-admin-institution>strong{display:block;background:#f4f8fa;padding:11px 15px;font-size:12px;color:#507284}
+.gift-admin-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 15px;border-top:1px solid #edf1f3}
+.gift-admin-row>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.gift-admin-row b{font-size:13px;color:#213e51}
+.gift-admin-row span{font-size:12px;color:#557487;overflow-wrap:anywhere}
+.gift-admin-row small{font-size:11px;color:#7f96a4}
+.gift-admin-row .btn{flex-shrink:0}
+.gift-admin-reserved,.gift-reserved-by{padding:13px 15px;margin:13px 0;background:#f4f8fb;border:1px solid #e0ebf0;border-radius:9px;font-size:13px}
+.campaign-import-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-bottom:15px}
+.campaign-import-input{margin:18px 0 12px}
+.campaign-import-file{display:inline-flex;gap:9px;align-items:center;border:1px dashed #9fcbd0;padding:12px 15px;border-radius:10px;color:#257789;font-size:12px;font-weight:800;cursor:pointer;margin:0 0 15px}
+.campaign-import-file input{font-size:11px;max-width:240px}
+.campaign-import-preview{background:#f6fafb;border:1px solid #e2ecf1;border-radius:12px;padding:15px;margin:12px 0 18px}
+.campaign-import-preview>b{display:block;font-size:12px;color:#315b70;margin-bottom:12px}
+.campaign-import-preview table{min-width:450px}
+.campaign-import-preview td{font-size:11px;padding:8px;max-width:230px;overflow-wrap:anywhere}
+.gift-operations-details{background:#f9fcfd;border:1px solid #e4ebf0;border-radius:13px;padding:17px;margin-top:18px}
+.gift-operations-state{display:flex;flex-direction:column;gap:5px;margin-bottom:17px}
+.gift-operations-state strong{font-size:16px}
+.gift-operations-state span{font-size:13px;color:#526d7e}
+.gift-operations-state small{color:#7795a3;font-size:11px}
+.gift-delivered-message{display:flex;align-items:center;gap:8px;color:#278063;background:#eaf8ef;border-radius:9px;padding:13px;font-weight:700;font-size:12px}
+.gift-public-section{padding:24px 24px 20px;background:#fbfdfc;border-bottom:1px solid #e5edef}
+.gift-public-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:13px;margin-bottom:16px}
+.gift-public-heading h3{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:18px}
+.gift-public-heading h3 svg{color:#3a9c80}
+.gift-public-heading p{margin:0;color:#76909d;font-size:12px;line-height:1.6;max-width:590px}
+.gift-public-heading>span{background:#e7f7ee;color:#287b57;font-size:12px;font-weight:800;padding:8px 12px;border-radius:9px}
+.gift-public-instructions{display:flex;gap:11px;align-items:flex-start;border:1px solid #c9e4e4;border-radius:11px;background:#eff9f9;padding:14px 15px;font-size:12px;line-height:1.7;color:#376c77;margin-bottom:18px}
+.gift-public-instructions svg{flex-shrink:0;margin-top:1px;color:#168c9a}
+.gift-public-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.gift-public-card{display:flex;flex-direction:column;gap:8px;padding:17px;border:1px solid #e2eaf0;border-radius:13px;background:white;min-height:157px;transition:transform .22s ease,box-shadow .22s ease}
+.gift-public-card:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(8,53,72,.08)}
+.gift-public-card-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.gift-public-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:#edf7f3;color:#2c9270}
+.gift-public-status{background:#e4f6ec;color:#287d53;border-radius:100px;font-size:10px;font-weight:800;padding:5px 9px}
+.gift-public-card.reserved .gift-public-status{background:#fff1dc;color:#a47327}
+.gift-public-card.delivered .gift-public-status{background:#edf0f3;color:#557283}
+.gift-public-card.delivered{opacity:.75}
+.gift-public-card>strong{font-size:13px;color:#203b4b;overflow-wrap:anywhere}
+.gift-public-card>span:not(.gift-public-status){font-size:13px;font-weight:700;color:#466578}
+.gift-public-card>small{font-size:11px;color:#79919e;line-height:1.5}
+.gift-other-materials{padding-top:2px}
+.gift-free-label,.gift-text-mini{font-size:12px;color:#26826e;font-weight:700}
+@media(max-width:740px){.campaign-import-toolbar{grid-template-columns:1fr}.gift-public-section{padding:17px 13px}.gift-public-heading h3{font-size:16px}.gift-admin-row{flex-wrap:wrap}.gift-admin-row .btn{margin-left:auto}}
+@media(prefers-reduced-motion:reduce){.gift-public-card{transition:none}.gift-public-card:hover{transform:none}}
