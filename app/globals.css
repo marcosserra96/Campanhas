@@ -430,3 +430,32 @@
 .collab-primary-action{transition:transform .2s ease,box-shadow .2s ease}
 .collab-primary-action:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.12)}
 @media(prefers-reduced-motion:reduce){.collab *, .collab *::before,.collab *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+
+/* Configuração simples de setores/grupos na campanha */
+.campaign-groups-panel .inline-form{margin:15px 0;max-width:700px}
+.campaign-group-tags{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0 5px}
+.campaign-group-tag{display:inline-flex;align-items:center;gap:6px;background:#f0f8f9;border:1px solid #d4e8eb;border-radius:10px;padding:3px 5px 3px 13px;color:#2b6476;font-size:12px;font-weight:800;max-width:100%;overflow-wrap:anywhere}
+.campaign-group-tag .icon-btn{padding:6px;flex-shrink:0}
+/* Identificação auditável do saldo anterior */
+.opening-panel{border-color:#d9e5ed}
+.opening-eyebrow{display:flex;align-items:center;gap:7px;color:#36868e;letter-spacing:.07em;font-size:10px;font-weight:900;margin-bottom:9px}
+.opening-panel .panel-header{align-items:flex-start}
+.opening-panel .panel-header>div{min-width:0}
+.opening-panel .panel-header h3{font-size:18px;line-height:1.4}
+.opening-count{background:#fff5e8;color:#a56629;white-space:nowrap;border-radius:9px;padding:10px 13px;font-size:12px;font-weight:900}
+.opening-inventory{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,205px),1fr));gap:12px;margin:20px 0}
+.opening-stock{display:flex;flex-direction:column;gap:6px;min-width:0;text-align:left;background:#f8fafc;border:1px solid #e4ebf0;border-radius:12px;padding:16px;color:#25475b;min-height:120px}
+.opening-stock:hover{border-color:#97ced1;background:#f2f9f9}
+.opening-stock.selected{border-color:#17a0aa;background:#eaf8f7;box-shadow:0 0 0 2px rgba(23,160,170,.07)}
+.opening-stock strong{font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.opening-stock small{font-size:11px;color:#8193a1;line-height:1.4}
+.opening-stock>span{margin-top:auto;font-size:11px;color:#667d8c}
+.opening-stock>span b{font-size:20px;color:#bc783d}
+.opening-form{padding:22px;border:1px solid #e7edf0;border-radius:13px;background:#fcfdfd}
+.opening-form h4,.opening-history h4{margin:0 0 16px;font-size:15px}
+.opening-form>.btn{margin-top:13px}
+.opening-history{margin-top:24px}
+.opening-history .donation-v2-table-scroll table{min-width:610px}
+.opening-history td .btn{min-height:35px}
+@media(max-width:700px){.opening-count{white-space:normal}.opening-panel .panel-header{flex-wrap:wrap}.opening-form{padding:15px}.campaign-groups-panel .inline-form{flex-wrap:wrap}.campaign-groups-panel .inline-form .btn{width:100%}}
