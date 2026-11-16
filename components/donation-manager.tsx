@@ -56,7 +56,7 @@ export default function DonationManager({campaign:c,donations,busy,run}:Props){
  async function receive(){
   if(!valid||busy)return;
   const remaining=selected?selected.target-selected.received:0;
-  if(selected&&quantity>remaining&&!window.confirm('A quantidade ultrapassa a meta ainda pendente deste material. Deseja registrar mesmo assim?'))return;
+  if(selected&&selected.mode!=='free'&&quantity>remaining&&!window.confirm('A quantidade ultrapassa a meta ainda pendente deste material. Deseja registrar mesmo assim?'))return;
   const ok=await run('receiveDonation',{needId,quantity,donor:donor.trim(),group:group.trim(),receivedBy:receiver.trim()});
   if(ok){try{localStorage.setItem('cipaa-last-receiver',receiver.trim())}catch{}setNeedId('');setQuantity(1);setSuccessful(true);if(showAudit)void loadAudit()}
  }
@@ -92,7 +92,7 @@ export default function DonationManager({campaign:c,donations,busy,run}:Props){
     <label className="donation-v2-field"><span>Membro da CIPAA que recebeu <b>*</b></span><input list="cipaa-members" placeholder="Nome do responsável" value={receiver} onChange={e=>setReceiver(e.target.value)}/><datalist id="cipaa-members">{members.map(m=><option value={m} key={m}/>)}</datalist></label>
    </div>
    {!groups.length&&<p className="notice soft">Antes de registrar doações, cadastre os setores/grupos em <strong>Campanhas → Pontuação</strong>.</p>}
-   {selected&&<div className="donation-v2-material"><Info size={17}/><span>{selected.name}: <strong>{num(Math.max(0,selected.target-selected.received))} {selected.unit} faltando</strong> para completar a meta</span></div>}
+   {selected&&<div className="donation-v2-material"><Info size={17}/><span>{selected.name}: {selected.mode==='free'?<strong>Arrecadação livre · {num(selected.received)} {selected.unit} já recebidos</strong>:<span><strong>{num(Math.max(0,selected.target-selected.received))} {selected.unit} faltando</strong> para completar a meta</span>}</span></div>}
    <div className="donation-v2-actions"><button className="btn primary" disabled={busy||!valid} onClick={()=>void receive()}><CheckCircle2 size={18}/>{busy?'Salvando...':'Registrar recebimento'}</button><button className="btn outline" onClick={()=>{setInstitutionId('');setNeedId('');setQuantity(1);setDonor('');setGroup('');setSuccessful(false)}} type="button">Limpar doador</button></div>
    <p className="donation-v2-footnote">Seu nome como membro da CIPAA fica preenchido neste navegador para agilizar as próximas entregas.</p>
   </section>
