@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
 import {Campaign,Donation} from '@/lib/types';
+import OpeningBalanceManager from '@/components/opening-balance-manager';
 import {CheckCircle2,ClipboardCheck,History,Pencil,RotateCcw,Search,ShieldCheck,Trash2,X,PackageCheck,Info,Save} from 'lucide-react';
 
 type Action=(op:string,params:Record<string,unknown>)=>Promise<boolean>;
@@ -9,6 +10,7 @@ type Props={campaign:Campaign;donations:Donation[];busy:boolean;run:Action};
 const num=(n:number)=>n.toLocaleString('pt-BR',{maximumFractionDigits:2});
 const date=(value:string)=>new Date(value).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
 export default function DonationManager({campaign:c,donations,busy,run}:Props){
+ const [institutionId,setInstitutionId]=useState('');
  const [needId,setNeedId]=useState('');
  const [quantity,setQuantity]=useState(1);
  const [donor,setDonor]=useState('');
@@ -17,6 +19,7 @@ export default function DonationManager({campaign:c,donations,busy,run}:Props){
  const [successful,setSuccessful]=useState(false);
  const [editing,setEditing]=useState<Donation|null>(null);
  const [canceling,setCanceling]=useState<Donation|null>(null);
+ const [editInstitution,setEditInstitution]=useState('');
  const [editNeed,setEditNeed]=useState('');
  const [editQuantity,setEditQuantity]=useState(1);
  const [editDonor,setEditDonor]=useState('');
@@ -29,14 +32,17 @@ export default function DonationManager({campaign:c,donations,busy,run}:Props){
  const [auditLoading,setAuditLoading]=useState(false);
  const [auditError,setAuditError]=useState('');
  const [search,setSearch]=useState('');
- const needs=useMemo(()=>c.institutions.flatMap(i=>i.needs.map(n=>({...n,institution:i.name}))),[c]);
- const groups=useMemo(()=>Array.from(new Set(donations.map(d=>d.group))).sort((a,b)=>a.localeCompare(b,'pt-BR')),[donations]);
- const members=useMemo(()=>Array.from(new Set(donations.map(d=>d.receivedBy).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'pt-BR')),[donations]);
+ const needs=useMemo(()=>c.institutions.flatMap(i=>i.needs.map(n=>({...n,institution:i.name,institutionId:i.id}))),[c]);
+ const current=useMemo(()=>donations.filter(d=>d.source!=='opening'),[donations]);
+ const allocations=useMemo(()=>donations.filter(d=>d.source==='opening'),[donations]);
+ const groups=c.groups||[];
+ const members=useMemo(()=>Array.from(new Set(current.map(d=>d.receivedBy).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'pt-BR')),[current]);
+ const institutionItems=c.institutions.find(i=>i.id===institutionId)?.needs||[];
  const selected=needs.find(n=>n.id===needId);
- const valid=Boolean(needId&&quantity>0&&Number.isFinite(quantity)&&donor.trim()&&group.trim()&&receiver.trim());
- const canEdit=Boolean(editor.trim().length>=2&&reason.trim().length>=5&&editNeed&&editQuantity>0&&editDonor.trim()&&editGroup.trim()&&editReceiver.trim());
+ const valid=Boolean(institutionId&&institutionItems.some(n=>n.id===needId)&&quantity>0&&Number.isFinite(quantity)&&donor.trim()&&groups.some(g=>g.name===group)&&receiver.trim());
+ const canEdit=Boolean(editor.trim().length>=2&&reason.trim().length>=5&&editNeed&&editQuantity>0&&editDonor.trim()&&groups.some(g=>g.name===editGroup)&&editReceiver.trim());
  const canCancel=Boolean(editor.trim().length>=2&&reason.trim().length>=5);
- const visible=donations.filter(d=>[d.donor,d.group,needs.find(n=>n.id===d.needId)?.name||''].some(v=>v.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR'))));
+ const visible=current.filter(d=>[d.donor,d.group,needs.find(n=>n.id===d.needId)?.name||''].some(v=>v.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR'))));
  useEffect(()=>{try{const saved=window.localStorage.getItem('cipaa-last-receiver');if(saved)setReceiver(saved)}catch{}},[]);
  async function loadAudit(){
   setAuditLoading(true);setAuditError('');
@@ -54,7 +60,7 @@ export default function DonationManager({campaign:c,donations,busy,run}:Props){
   if(ok){try{localStorage.setItem('cipaa-last-receiver',receiver.trim())}catch{}setNeedId('');setQuantity(1);setSuccessful(true);if(showAudit)void loadAudit()}
  }
  function startEdit(d:Donation){
-  setEditing(d);setCanceling(null);setEditNeed(d.needId);setEditQuantity(d.quantity);setEditDonor(d.donor);setEditGroup(d.group);setEditReceiver(d.receivedBy);setEditor(receiver||'');setReason('');
+  setEditing(d);setCanceling(null);setEditInstitution(d.institutionId);setEditNeed(d.needId);setEditQuantity(d.quantity);setEditDonor(d.donor);setEditGroup(d.group);setEditReceiver(d.receivedBy);setEditor(receiver||'');setReason('');
  }
  function startCancel(d:Donation){
   setCanceling(d);setEditing(null);setEditor(receiver||'');setReason('');
@@ -77,25 +83,28 @@ export default function DonationManager({campaign:c,donations,busy,run}:Props){
   <section className="panel donation-v2-card">
    <div className="donation-v2-heading"><span><PackageCheck size={22}/></span><div><h3>Nova entrega</h3><p>Informe o material, a quantidade e quem participou.</p></div></div>
    <div className="donation-v2-grid">
-    <label className="donation-v2-field donation-v2-wide"><span>Material recebido <b>*</b></span><select value={needId} onChange={e=>{setNeedId(e.target.value);setSuccessful(false)}}><option value="">Selecione o material</option>{c.institutions.map(i=><optgroup label={i.name} key={i.id}>{i.needs.map(n=><option key={n.id} value={n.id}>{n.name}{n.specification?' — '+n.specification:''}</option>)}</optgroup>)}</select></label>
+    <label className="donation-v2-field"><span>Instituição <b>*</b></span><select value={institutionId} onChange={e=>{setInstitutionId(e.target.value);setNeedId('');setSuccessful(false)}}><option value="">Selecione a instituição</option>{c.institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}</select></label>
+    <label className="donation-v2-field"><span>Material recebido <b>*</b></span><select value={needId} disabled={!institutionId} onChange={e=>{setNeedId(e.target.value);setSuccessful(false)}}><option value="">{institutionId?'Selecione o material':'Escolha uma instituição primeiro'}</option>{institutionItems.map(n=><option key={n.id} value={n.id}>{n.name}{n.specification?' — '+n.specification:''}</option>)}</select></label>
     <label className="donation-v2-field"><span>Quantidade <b>*</b></span><input type="number" min="0.01" step="any" value={quantity} onChange={e=>setQuantity(Number(e.target.value))}/></label>
     <label className="donation-v2-field"><span>Colaborador que doou <b>*</b></span><input placeholder="Nome do colaborador" value={donor} onChange={e=>setDonor(e.target.value)}/></label>
-    <label className="donation-v2-field"><span>{'Setor ou grupo ('+c.rankingBy+')'} <b>*</b></span><input list="cipaa-groups" placeholder="Informe o grupo ou selecione um existente" value={group} onChange={e=>setGroup(e.target.value)}/><datalist id="cipaa-groups">{groups.map(g=><option value={g} key={g}/>)}</datalist></label>
+    <label className="donation-v2-field"><span>{'Setor ou grupo ('+c.rankingBy+')'} <b>*</b></span><select value={group} onChange={e=>setGroup(e.target.value)}><option value="">Selecione o setor/grupo</option>{groups.map(g=><option value={g.name} key={g.id}>{g.name}</option>)}</select></label>
     <label className="donation-v2-field"><span>Membro da CIPAA que recebeu <b>*</b></span><input list="cipaa-members" placeholder="Nome do responsável" value={receiver} onChange={e=>setReceiver(e.target.value)}/><datalist id="cipaa-members">{members.map(m=><option value={m} key={m}/>)}</datalist></label>
    </div>
+   {!groups.length&&<p className="notice soft">Antes de registrar doações, cadastre os setores/grupos em <strong>Campanhas → Pontuação</strong>.</p>}
    {selected&&<div className="donation-v2-material"><Info size={17}/><span>{selected.name}: <strong>{num(Math.max(0,selected.target-selected.received))} {selected.unit} faltando</strong> para completar a meta</span></div>}
-   <div className="donation-v2-actions"><button className="btn primary" disabled={busy||!valid} onClick={()=>void receive()}><CheckCircle2 size={18}/>{busy?'Salvando...':'Registrar recebimento'}</button><button className="btn outline" onClick={()=>{setNeedId('');setQuantity(1);setDonor('');setGroup('');setSuccessful(false)}} type="button">Limpar doador</button></div>
+   <div className="donation-v2-actions"><button className="btn primary" disabled={busy||!valid} onClick={()=>void receive()}><CheckCircle2 size={18}/>{busy?'Salvando...':'Registrar recebimento'}</button><button className="btn outline" onClick={()=>{setInstitutionId('');setNeedId('');setQuantity(1);setDonor('');setGroup('');setSuccessful(false)}} type="button">Limpar doador</button></div>
    <p className="donation-v2-footnote">Seu nome como membro da CIPAA fica preenchido neste navegador para agilizar as próximas entregas.</p>
   </section>
+  <OpeningBalanceManager campaign={c} attributions={allocations} run={run} busy={busy} onUpdate={()=>{if(showAudit)void loadAudit()}}/>
   <section className="panel donation-v2-list">
-   <div className="panel-header"><div><h3>Doações registradas</h3><p className="muted">Corrija erros ou cancele um lançamento informando o motivo.</p></div><span className="pill">{donations.length} registros ativos</span></div>
+   <div className="panel-header"><div><h3>Doações registradas</h3><p className="muted">Corrija erros ou cancele um lançamento informando o motivo.</p></div><span className="pill">{current.length} registros ativos</span></div>
    <div className="donation-v2-toolbar"><label className="donation-v2-search"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar doador, grupo ou material" aria-label="Buscar doações"/></label><button className="btn outline" onClick={()=>{setShowAudit(!showAudit);if(!showAudit)void loadAudit()}}><History size={17}/>{showAudit?'Fechar auditoria':'Ver auditoria'}</button></div>
    <div className="donation-v2-table-scroll"><table><thead><tr><th>Data</th><th>Doador / grupo</th><th>Material</th><th>Qtd.</th><th>Ações</th></tr></thead><tbody>{visible.slice(0,75).map(d=><tr key={d.id}><td>{date(d.date)}</td><td><strong>{d.donor}</strong><small>{d.group}</small></td><td>{needs.find(n=>n.id===d.needId)?.name||'Material não encontrado'}</td><td><b>{num(d.quantity)}</b></td><td><div className="donation-row-buttons"><button onClick={()=>startEdit(d)} title="Editar registro"><Pencil size={15}/> Editar</button><button onClick={()=>startCancel(d)} title="Cancelar registro"><Trash2 size={15}/> Cancelar</button></div></td></tr>)}{visible.length===0&&<tr><td colSpan={5} className="donation-v2-empty">Nenhuma doação encontrada.</td></tr>}</tbody></table></div>
    {visible.length>75&&<p className="hint">Mostrando os 75 registros mais recentes. Use a busca para localizar outros.</p>}
   </section>
   {showAudit&&<section className="panel donation-v2-audit"><div className="panel-header"><div><h3><ShieldCheck size={19}/> Histórico de auditoria</h3><p className="muted">As alterações e cancelamentos são registrados no Supabase e não podem ser apagados pelo portal.</p></div><button className="btn outline" disabled={auditLoading} onClick={()=>void loadAudit()}><RotateCcw size={15}/> Atualizar</button></div>{auditLoading?<p className="muted">Carregando histórico...</p>:auditError?<p className="notice">{auditError}</p>:audit.length?audit.map(ev=><details key={ev.id} className="audit-event"><summary><span className="audit-event-status">{ev.event_type==='created'?'Criação':ev.event_type==='edited'?'Correção':ev.event_type==='voided'?'Cancelamento':'Registro anterior'}</span><strong>{ev.changed_by}</strong><small>{date(ev.changed_at)}</small></summary><p><b>Motivo:</b> {ev.reason}</p><div className="audit-snapshots">{ev.before_data&&<div><b>Antes</b><p>{String(ev.before_data.donor_name||'')} · {String(ev.before_data.group_name||'')}</p><p>{num(Number(ev.before_data.quantity||0))} unidade(s) · {needs.find(n=>n.id===ev.before_data?.need_id)?.name||'Material anterior'}</p><p>Recebido por: {String(ev.before_data.received_by||'')}</p></div>}{ev.after_data&&<div><b>Depois</b><p>{String(ev.after_data.donor_name||'')} · {String(ev.after_data.group_name||'')}</p><p>{num(Number(ev.after_data.quantity||0))} unidade(s) · {needs.find(n=>n.id===ev.after_data?.need_id)?.name||'Material atual'}</p><p>Recebido por: {String(ev.after_data.received_by||'')}</p></div>}</div></details>):<p className="muted">Nenhuma alteração registrada até o momento.</p>}</section>}
   {(editing||canceling)&&<div className="donation-dialog-backdrop" role="presentation" onClick={()=>{setEditing(null);setCanceling(null)}}><section className="donation-dialog" role="dialog" aria-modal="true" aria-label={editing?'Editar doação':'Cancelar doação'} onClick={e=>e.stopPropagation()}><div className="panel-header"><div><h3>{editing?'Corrigir doação':'Cancelar doação'}</h3><p className="muted">A alteração ficará registrada no histórico de auditoria.</p></div><button className="icon-btn" aria-label="Fechar" onClick={()=>{setEditing(null);setCanceling(null)}}><X size={19}/></button></div>
-   {editing&&<div className="donation-v2-grid"><label className="donation-v2-field donation-v2-wide"><span>Material</span><select value={editNeed} onChange={e=>setEditNeed(e.target.value)}>{c.institutions.map(i=><optgroup label={i.name} key={i.id}>{i.needs.map(n=><option key={n.id} value={n.id}>{n.name}</option>)}</optgroup>)}</select></label><label className="donation-v2-field"><span>Quantidade</span><input type="number" min="0.01" step="any" value={editQuantity} onChange={e=>setEditQuantity(Number(e.target.value))}/></label><label className="donation-v2-field"><span>Doador</span><input value={editDonor} onChange={e=>setEditDonor(e.target.value)}/></label><label className="donation-v2-field"><span>Grupo</span><input value={editGroup} onChange={e=>setEditGroup(e.target.value)}/></label><label className="donation-v2-field"><span>Quem recebeu</span><input value={editReceiver} onChange={e=>setEditReceiver(e.target.value)}/></label></div>}
+   {editing&&<div className="donation-v2-grid"><label className="donation-v2-field"><span>Instituição</span><select value={editInstitution} onChange={e=>{setEditInstitution(e.target.value);setEditNeed('')}}><option value="">Selecione a instituição</option>{c.institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}</select></label><label className="donation-v2-field"><span>Material</span><select value={editNeed} disabled={!editInstitution} onChange={e=>setEditNeed(e.target.value)}><option value="">Selecione</option>{c.institutions.find(i=>i.id===editInstitution)?.needs.map(n=><option key={n.id} value={n.id}>{n.name}</option>)}</select></label><label className="donation-v2-field"><span>Quantidade</span><input type="number" min="0.01" step="any" value={editQuantity} onChange={e=>setEditQuantity(Number(e.target.value))}/></label><label className="donation-v2-field"><span>Doador</span><input value={editDonor} onChange={e=>setEditDonor(e.target.value)}/></label><label className="donation-v2-field"><span>Grupo</span><select value={editGroup} onChange={e=>setEditGroup(e.target.value)}><option value="">Selecione um grupo</option>{groups.map(g=><option key={g.id} value={g.name}>{g.name}</option>)}</select></label><label className="donation-v2-field"><span>Quem recebeu</span><input value={editReceiver} onChange={e=>setEditReceiver(e.target.value)}/></label></div>}
    {editing&&selectedEdit&&<p className="hint">Material selecionado: {selectedEdit.name}</p>}
    {canceling&&<p className="donation-v2-cancel-text">A doação de <strong>{num(canceling.quantity)} unidade(s)</strong> feita por <strong>{canceling.donor}</strong> deixará de contar nos resultados. O histórico será mantido.</p>}
    <div className="donation-v2-audit-inputs"><label className="donation-v2-field"><span>Seu nome (responsável pela alteração) *</span><input value={editor} onChange={e=>setEditor(e.target.value)} placeholder="Nome do membro da CIPAA"/></label><label className="donation-v2-field"><span>Motivo da {editing?'correção':'cancelamento'} *</span><textarea rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Ex.: Quantidade digitada incorretamente"/></label></div>
