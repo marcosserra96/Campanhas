@@ -22,7 +22,7 @@ export async function GET(request:NextRequest){
  }));
  const idToSlug=new Map(rows.map(r=>[r.id,r.slug]));
  const allowedIds=rows.map(r=>r.id);
- const raw=allowedIds.length?await db<Row[]>('donations','select=id,campaign_id,institution_id,need_id,quantity,group_name,received_at'+(admin&&wantAll?',donor_name,received_by':'')+'&campaign_id=in.('+allowedIds.join(',')+')&order=received_at.desc&limit=10000'):[];
+ const raw=allowedIds.length?await db<Row[]>('donations','select=id,campaign_id,institution_id,need_id,quantity,group_name,received_at'+(admin&&wantAll?',donor_name,received_by':'')+'&campaign_id=in.('+allowedIds.join(',')+')&voided_at=is.null&order=received_at.desc&limit=10000'):[];
  const donations:Donation[]=raw.map(d=>({id:d.id,campaignId:idToSlug.get(d.campaign_id)||'',institutionId:d.institution_id,needId:d.need_id,quantity:Number(d.quantity),group:d.group_name,donor:admin&&wantAll?d.donor_name:'',receivedBy:admin&&wantAll?d.received_by:'',date:d.received_at}));
  for(const d of donations){const c=campaigns.find(c=>c.id===d.campaignId);const n=c?.institutions.flatMap(i=>i.needs).find(n=>n.id===d.needId);if(n)n.received+=d.quantity}
  const store:Store={campaigns,donations,settings:{pinEnabled:false}};
