@@ -83,6 +83,68 @@ export async function POST(req:NextRequest){
   }
   return NextResponse.json({ok:true});
  }
+ if(op==='addGift'){
+  const iid=body.institutionId as string;
+  if(!valid(iid)||!await campaignOwnsInstitution(String(camp.id),iid))return failure('Instituição inválida.');
+  const beneficiary=txt(body.beneficiary,160),gift=txt(body.giftName,200),points=body.points;
+  if(!beneficiary||!gift||!finite(points))return failure('Preencha beneficiário, presente e pontos.');
+  await db('gift_requests','','POST',{institution_id:iid,beneficiary,gift_name:gift,details:txt(body.details,500),points});
+  return NextResponse.json({ok:true});
+ }
+ if(op==='editGift'||op==='reserveGift'||op==='deliverGift'||op==='releaseGift'){
+  const giftId=body.giftId as string;
+  if(!valid(giftId))return failure('Presente inválido.');
+  const entries=await db<Row[]>('gift_requests','select=*&id=eq.'+giftId);
+  const original=entries[0];
+  if(!original||!await campaignOwnsInstitution(String(camp.id),String(original.institution_id)))return failure('Presente não pertence à campanha.',404);
+  const actor=txt(body.actor,160),reason=txt(body.reason,500);
+  if(actor.length<2||reason.length<5)return failure('Responsável e motivo devem ser informados (mínimo de 5 caracteres).');
+  const status=String(original.status);
+  const query='id=eq.'+giftId+'&status=eq.'+status;
+  let data:Record<string,unknown>={changed_by:actor,change_reason:reason};
+  if(op==='editGift'){
+   const beneficiary=txt(body.beneficiary,160),gift=txt(body.giftName,200),points=body.points;
+   if(!beneficiary||!gift||!finite(points))return failure('Dados do presente inválidos.');
+   data={...data,beneficiary,gift_name:gift,details:txt(body.details,500),points};
+  }
+  if(op==='reserveGift'){
+   if(status!=='available')return failure('Este presente já está reservado ou entregue.');
+   const donor=txt(body.donor,160),group=txt(body.group,120);
+   if(!donor||!group||!await validGroup(String(camp.id),group))return failure('Informe doador e um setor/grupo cadastrado.');
+   data={...data,status:'reserved',donor_name:donor,group_name:group,reserved_by:actor,reserved_at:new Date().toISOString()};
+  }
+  if(op==='deliverGift'){
+   if(status!=='reserved')return failure('É necessário reservar o presente antes de confirmar a entrega.');
+   data={...data,status:'delivered',delivered_by:actor,delivered_at:new Date().toISOString()};
+  }
+  if(op==='releaseGift'){
+   if(status!=='reserved')return failure('Somente presentes reservados podem ser liberados.');
+   data={...data,status:'available',donor_name:null,group_name:null,reserved_by:null,reserved_at:null,delivered_by:null,delivered_at:null};
+  }
+  const changed=await db<Row[]>('gift_requests',query,'PATCH',data);
+  if(!changed.length)return failure('Esse presente foi alterado por outra pessoa. Atualize a página.',409);
+  return NextResponse.json({ok:true});
+ }
+ if(op==='bulkAddGifts'){
+  const iid=body.institutionId as string;
+  if(!valid(iid)||!await campaignOwnsInstitution(String(camp.id),iid))return failure('Instituição inválida.');
+  const items=body.items as Array<{beneficiary:string;giftName:string;details?:string;points:number}>;
+  if(!Array.isArray(items)||!items.length||items.length>300)return failure('Importe entre 1 e 300 presentes por vez.');
+  const mapped=items.map((x,i)=>({institution_id:iid,beneficiary:txt(x.beneficiary,160),gift_name:txt(x.giftName,200),details:txt(x.details,500),points:x.points,row:i+1}));
+  if(mapped.some(x=>!x.beneficiary||!x.gift_name||!finite(x.points)))return failure('Há linhas com beneficiário, presente ou pontos inválidos.');
+  await db('gift_requests','','POST',mapped.map(({row,...rest})=>rest));
+  return NextResponse.json({ok:true,imported:mapped.length});
+ }
+ if(op==='bulkAddNeeds'){
+  const iid=body.institutionId as string;
+  if(!valid(iid)||!await campaignOwnsInstitution(String(camp.id),iid))return failure('Instituição inválida.');
+  const items=body.items as Array<{name:string;unit:string;target:number;points:number;mode:string;specification?:string}>;
+  if(!Array.isArray(items)||!items.length||items.length>300)return failure('Importe entre 1 e 300 materiais por vez.');
+  const mapped=items.map(x=>({institution_id:iid,name:txt(x.name,150),unit:txt(x.unit,30)||'unidade(s)',target:x.mode==='free'?0:x.target,points:x.points,mode:x.mode==='free'?'free':'target',specification:txt(x.specification,250)}));
+  if(mapped.some(x=>!x.name||!finite(x.target)||(x.mode==='target'&&x.target===0)||!finite(x.points)))return failure('Existem materiais inválidos.');
+  await db('needs','','POST',mapped);
+  return NextResponse.json({ok:true,imported:mapped.length});
+ }
  if(op==='saveInstitution'){
  const item=body.institution as {id?:string;name:string;description?:string};
  if(!item||!txt(item.name,160))return failure('Informe a instituição.');
@@ -100,19 +162,19 @@ export async function POST(req:NextRequest){
  await db('institutions','id=eq.'+body.institutionId,'DELETE');return NextResponse.json({ok:true});
  }
  if(op==='addNeed'){
- const item=body.need as {name:string;unit:string;target:number;points:number};const iid=body.institutionId as string;
+ const item=body.need as {name:string;unit:string;target:number;points:number;mode?:string};const iid=body.institutionId as string;
  if(!valid(iid)||!await campaignOwnsInstitution(String(camp.id),iid))return failure('Instituição inválida.');
- if(!item||!txt(item.name,150)||!finite(item.target)||item.target===0||!finite(item.points))return failure('Dados do item inválidos.');
- await db('needs','','POST',{institution_id:iid,name:txt(item.name,150),unit:txt(item.unit,30)||'unidade(s)',target:item.target,points:item.points,specification:txt((item as {specification?:string}).specification,250)});return NextResponse.json({ok:true});
+ if(!item||!txt(item.name,150)||!finite(item.target)||(item.mode!=='free'&&item.target===0)||!finite(item.points)||!['target','free'].includes(item.mode||'target'))return failure('Dados do item inválidos.');
+ await db('needs','','POST',{institution_id:iid,name:txt(item.name,150),unit:txt(item.unit,30)||'unidade(s)',target:item.target,points:item.points,mode:item.mode==='free'?'free':'target',specification:txt((item as {specification?:string}).specification,250)});return NextResponse.json({ok:true});
  }
  if(op==='editNeed'){
  const nid=body.needId as string;
  if(!valid(nid))return failure('Item inválido.');
  const existing=await needInfo(nid);
  if(!existing||!await campaignOwnsInstitution(String(camp.id),String(existing.institution_id)))return failure('Item não pertence à campanha.',403);
- const item=body.need as {name:string;unit:string;target:number;points:number;specification?:string};
- if(!item||!txt(item.name,150)||!finite(item.target)||item.target===0||!finite(item.points))return failure('Informe um nome, meta e pontuação válidos.');
- await db('needs','id=eq.'+nid,'PATCH',{name:txt(item.name,150),unit:txt(item.unit,30)||'unidade(s)',target:item.target,points:item.points,specification:txt(item.specification,250)});
+ const item=body.need as {name:string;unit:string;target:number;points:number;specification?:string;mode?:string};
+ if(!item||!txt(item.name,150)||!finite(item.target)||(item.mode!=='free'&&item.target===0)||!finite(item.points)||!['target','free'].includes(item.mode||'target'))return failure('Informe um nome, meta e pontuação válidos.');
+ await db('needs','id=eq.'+nid,'PATCH',{name:txt(item.name,150),unit:txt(item.unit,30)||'unidade(s)',target:item.target,points:item.points,mode:item.mode==='free'?'free':'target',specification:txt(item.specification,250)});
  return NextResponse.json({ok:true});
  }
  if(op==='deleteNeed'){
