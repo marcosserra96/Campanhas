@@ -89,9 +89,10 @@ export async function POST(req:NextRequest){
   const reason=txt(body.reason,500);
   if(actor.length<2||reason.length<5)return failure('Informe seu nome e o motivo da alteração (mínimo 5 caracteres).');
   if(op==='voidDonation'||op==='deleteDonation'){
-   await db('donations','id=eq.'+did+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{
+   const changed=await db<Row[]>('donations','id=eq.'+did+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{
     voided_at:new Date().toISOString(),voided_by:actor,edited_by:actor,edit_reason:reason
    });
+   if(!changed.length)return failure('O lançamento já foi alterado por outra pessoa. Atualize a lista.',409);
    return NextResponse.json({ok:true});
   }
   const nid=body.needId as string;
@@ -100,10 +101,11 @@ export async function POST(req:NextRequest){
   if(!valid(nid)||!finite(quantity)||quantity<=0||!donor||!group||!receivedBy)return failure('Dados da correção inválidos.');
   const need=await needInfo(nid);
   if(!need||!await campaignOwnsInstitution(String(camp.id),String(need.institution_id)))return failure('O item não pertence a esta campanha.',403);
-  await db('donations','id=eq.'+did+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{
+  const changed=await db<Row[]>('donations','id=eq.'+did+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{
    need_id:nid,institution_id:need.institution_id,quantity,
    donor_name:donor,group_name:group,received_by:receivedBy,edited_by:actor,edit_reason:reason
   });
+  if(!changed.length)return failure('O lançamento já foi alterado por outra pessoa. Atualize a lista.',409);
   return NextResponse.json({ok:true});
  }
  return failure('Operação não suportada.');
