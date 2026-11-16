@@ -358,3 +358,75 @@
 .collab-institution-details .collab-need:first-child{border-top:1px solid #edf2f4}
 @media(max-width:780px){.collab-institution-trigger{grid-template-columns:48px minmax(0,1fr) 95px 28px;gap:12px;padding:19px}.collab-institution-symbol{width:46px;height:46px}.collab-institution-summary>strong{font-size:16px}.collab-institution-totals>strong{font-size:24px}.collab-institution-details-head{align-items:flex-start}}
 @media(max-width:540px){.collab-institution-trigger{grid-template-columns:40px minmax(0,1fr) 28px;gap:11px;padding:17px 14px;align-items:start}.collab-institution-symbol{width:39px;height:39px;border-radius:11px}.collab-institution-symbol svg{width:23px}.collab-institution-summary>strong{font-size:15px}.collab-institution-summary>small{font-size:11px}.collab-institution-totals{grid-column:2;grid-row:2;align-items:flex-start;flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:6px;margin-top:2px}.collab-institution-totals>strong{font-size:23px}.collab-institution-totals>em{width:100%;margin-top:0}.collab-institution-expand{grid-column:3;grid-row:1;width:27px;height:27px}.collab-institution-track{flex-wrap:wrap;gap:8px;margin-top:2px}.collab-institution-track>.collab-meter{width:100%}.collab-institution-details-head{padding:18px 13px 12px}.collab-institution-details-head h3{font-size:15px}.collab-institution-filters{width:100%}.collab-institution-filters .collab-tabs{width:100%}.collab-institution-filters .collab-search{width:100%;max-width:none}.collab-institution-accordion{gap:11px}}
+
+
+/* CIPAA: lançamento rápido e revisão auditável */
+.donations-v2{max-width:1150px}
+.donation-v2-card{padding:28px}
+.donation-v2-heading{display:flex;align-items:center;gap:13px;margin-bottom:23px}
+.donation-v2-heading>span{display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:#e8f8f4;color:#137e72}
+.donation-v2-heading h3{font-size:19px;margin:0 0 4px}
+.donation-v2-heading p{font-size:12px;color:#7e90a0;margin:0}
+.donation-v2-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.donation-v2-field{display:flex;flex-direction:column;gap:8px;min-width:0;font-weight:700;font-size:12px;color:#496577}
+.donation-v2-field>b,.donation-v2-field>span>b{color:#d17945}
+.donation-v2-field input,.donation-v2-field select,.donation-v2-field textarea{width:100%;min-width:0;border:1px solid #dbe5ec;border-radius:10px;padding:11px 13px;font-size:13px;color:#223c51;background:white;min-height:44px;outline:0;font-weight:500}
+.donation-v2-field textarea{resize:vertical}
+.donation-v2-field :is(input,select,textarea):focus{border-color:#24a2ac;box-shadow:0 0 0 3px rgba(36,162,172,.09)}
+.donation-v2-field.donation-v2-wide{grid-column:span 1}
+.donation-v2-material{display:flex;align-items:center;gap:10px;margin:18px 0 6px;background:#edf9f5;color:#417966;border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.5}
+.donation-v2-material svg{flex-shrink:0}
+.donation-v2-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:23px}
+.donation-v2-actions .btn{min-height:44px}
+.donation-v2-footnote{color:#8b9daa;font-size:11px;margin:13px 0 0}
+.donation-notification{display:flex;align-items:center;gap:12px;background:#ecf9f2;border:1px solid #c2e9d3;color:#247854;border-radius:13px;padding:15px;margin-bottom:17px;font-size:12px}
+.donation-notification button{margin-left:auto;border:1px solid #bbdfd0;border-radius:8px;background:#fff;color:#287659;padding:9px 12px;font-weight:800;white-space:nowrap;font-size:11px}
+.donation-v2-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0}
+.donation-v2-search{display:flex;align-items:center;gap:8px;border:1px solid #dce7ec;border-radius:9px;padding:0 11px;min-height:43px;flex:1;max-width:370px;color:#6c8b9a}
+.donation-v2-search input{font-size:12px;border:0;background:none;outline:none;width:100%;min-width:0}
+.donation-v2-table-scroll{overflow-x:auto}
+.donation-v2-table-scroll table{min-width:680px}
+.donation-v2-table-scroll td{font-size:12px}
+.donation-v2-table-scroll td strong{display:block;color:#273e51;font-size:12px}
+.donation-v2-table-scroll td small{display:block;color:#91a1af;font-size:11px;margin-top:4px}
+.donation-row-buttons{display:flex;gap:6px;align-items:center}
+.donation-row-buttons button{border:1px solid #e0e8ed;background:#fff;border-radius:8px;padding:8px 9px;color:#496a7b;font-size:11px;font-weight:800;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.donation-row-buttons button:hover{background:#eff8f9;border-color:#b0d8db}
+.donation-row-buttons button:last-child{color:#a65b5b}
+.donation-v2-empty{text-align:center;color:#8298a5;padding:32px!important}
+.donation-v2-audit .panel-header h3{display:flex;align-items:center;gap:10px}
+.audit-event{border:1px solid #e5ebef;border-radius:11px;padding:13px 16px;margin-top:10px;background:#fbfcfd}
+.audit-event summary{display:flex;align-items:center;gap:12px;cursor:pointer;flex-wrap:wrap;font-size:12px}
+.audit-event summary strong{color:#365d70}
+.audit-event summary small{margin-left:auto;color:#859aaa}
+.audit-event-status{padding:6px 10px;border-radius:7px;background:#eaf6f1;color:#278568;font-size:11px;font-weight:800}
+.audit-event p{margin:12px 0 0;font-size:12px;color:#506c80}
+.audit-snapshots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:13px}
+.audit-snapshots>div{padding:12px;background:#f1f6f8;border-radius:8px;min-width:0;overflow-wrap:anywhere}
+.audit-snapshots>div>b{font-size:12px}
+.audit-snapshots p{margin:5px 0}
+.donation-dialog-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(5,23,38,.65);display:flex;justify-content:center;align-items:center;padding:18px;overflow-y:auto}
+.donation-dialog{background:#fff;width:min(700px,100%);max-height:calc(100vh - 36px);overflow-y:auto;padding:26px;border-radius:17px;box-shadow:0 20px 70px rgba(0,0,0,.25)}
+.donation-v2-audit-inputs{border-top:1px solid #e8edf0;margin-top:20px;padding-top:20px;display:grid;gap:14px}
+.donation-v2-cancel-text{background:#fff6ef;border:1px solid #f5ddc7;border-radius:10px;padding:14px;color:#835a3a;font-size:13px}
+@media(max-width:700px){.donation-v2-card{padding:19px}.donation-v2-grid{grid-template-columns:1fr;gap:13px}.donation-v2-toolbar{align-items:stretch}.donation-v2-search{max-width:none;flex-basis:100%}.donation-dialog{padding:20px}.donation-notification{flex-wrap:wrap}.donation-notification button{margin-left:0}.audit-snapshots{grid-template-columns:1fr}}
+/* Colaborador: animações leves, sem prejudicar legibilidade e uso em celulares */
+@keyframes collabFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes collabReveal{from{opacity:0;transform:translateY(-9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes collabPulse{0%,100%{box-shadow:0 0 0 0 rgba(83,184,120,.19)}50%{box-shadow:0 0 0 5px rgba(83,184,120,0)}}
+.collab-hero{animation:collabFadeUp .6s ease both}
+.collab-impact{animation:collabFadeUp .6s .13s ease both}
+.collab-materials{animation:collabFadeUp .6s .22s ease both}
+.collab-lower{animation:collabFadeUp .6s .3s ease both}
+.collab-hero-graphic .collab-graphic-orb{transition:transform .35s ease}
+.collab-institution-accordion-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.collab-institution-accordion-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(11,48,74,.075)}
+.collab-institution-details{animation:collabReveal .23s ease-out both}
+.collab-institution-expand svg{transition:transform .2s ease}
+.collab-refresh{transition:transform .25s ease,background .2s ease}
+.collab-refresh:hover{transform:rotate(30deg)}
+.collab-live-dot{animation:collabPulse 3s ease-in-out infinite}
+.collab-meter>span{transition:width .65s cubic-bezier(.19,.88,.3,1)}
+.collab-primary-action{transition:transform .2s ease,box-shadow .2s ease}
+.collab-primary-action:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.12)}
+@media(prefers-reduced-motion:reduce){.collab *, .collab *::before,.collab *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
