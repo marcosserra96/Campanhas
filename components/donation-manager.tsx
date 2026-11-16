@@ -2,6 +2,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import {Campaign,Donation} from '@/lib/types';
 import OpeningBalanceManager from '@/components/opening-balance-manager';
+import GiftOperations from '@/components/gift-operations';
 import {CheckCircle2,ClipboardCheck,History,Pencil,RotateCcw,Search,ShieldCheck,Trash2,X,PackageCheck,Info,Save} from 'lucide-react';
 
 type Action=(op:string,params:Record<string,unknown>)=>Promise<boolean>;
@@ -95,6 +96,7 @@ export default function DonationManager({campaign:c,donations,busy,run}:Props){
    <div className="donation-v2-actions"><button className="btn primary" disabled={busy||!valid} onClick={()=>void receive()}><CheckCircle2 size={18}/>{busy?'Salvando...':'Registrar recebimento'}</button><button className="btn outline" onClick={()=>{setInstitutionId('');setNeedId('');setQuantity(1);setDonor('');setGroup('');setSuccessful(false)}} type="button">Limpar doador</button></div>
    <p className="donation-v2-footnote">Seu nome como membro da CIPAA fica preenchido neste navegador para agilizar as próximas entregas.</p>
   </section>
+  <GiftOperations campaign={c} run={run} busy={busy}/>
   <OpeningBalanceManager campaign={c} attributions={allocations} run={run} busy={busy} onUpdate={()=>{if(showAudit)void loadAudit()}}/>
   <section className="panel donation-v2-list">
    <div className="panel-header"><div><h3>Doações registradas</h3><p className="muted">Corrija erros ou cancele um lançamento informando o motivo.</p></div><span className="pill">{current.length} registros ativos</span></div>
