@@ -653,3 +653,31 @@
 .collab-beneficiary-institution .collab-beneficiary-pills{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0 0}
 .collab-beneficiary-institution .collab-beneficiary-pills span{font-size:11px}
 @media(max-width:530px){.collab-beneficiary-institution{padding:13px}.collab-beneficiary-institution-head>span{width:100%;padding-left:28px}}
+
+
+/* Portal público: indicadores claros por modalidade de doação */
+.collab-institution-trigger{grid-template-columns:58px minmax(0,1fr) minmax(155px,auto) 34px}
+.collab-institution-totals{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:155px}
+.collab-institution-quantity{display:flex;flex-direction:column;align-items:flex-end;gap:3px;width:100%}
+.collab-institution-quantity>strong{color:#c57b39;font-size:26px;font-weight:850;line-height:1.1}
+.collab-institution-quantity>small{color:#687f8d;font-size:11px;font-weight:650;white-space:normal;line-height:1.35;text-align:right}
+.collab-institution-quantity.gifts>strong{color:#21836a}
+.collab-institution-quantity.gifts{margin-top:4px}
+.collab-institution-secondary{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:5px;width:100%}
+.collab-institution-secondary>small{color:#688596;background:#eff5f6;padding:5px 8px;border-radius:7px;font-size:10px;line-height:1.2}
+.collab-beneficiary-institution-list{gap:8px}
+.collab-beneficiary-institution{padding:13px 15px}
+@media(max-width:780px){
+ .collab-institution-trigger{grid-template-columns:46px minmax(0,1fr) minmax(118px,auto) 28px;gap:12px}
+ .collab-institution-totals{min-width:118px}
+ .collab-institution-quantity>strong{font-size:23px}
+}
+@media(max-width:540px){
+ .collab-institution-trigger{grid-template-columns:40px minmax(0,1fr) 28px;align-items:start}
+ .collab-institution-totals{grid-column:2;grid-row:2;min-width:0;width:100%;display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:flex-start;gap:12px;margin-top:5px}
+ .collab-institution-quantity{width:auto;align-items:flex-start;max-width:100%}
+ .collab-institution-quantity>strong{font-size:23px}
+ .collab-institution-quantity>small{text-align:left}
+ .collab-institution-secondary{width:100%;justify-content:flex-start;margin-top:0}
+ .collab-institution-expand{grid-column:3;grid-row:1}
+}
