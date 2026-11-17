@@ -10,7 +10,9 @@ export async function GET(request:NextRequest){
  const admin=await isAdmin();
  const wantAll=request.nextUrl.searchParams.get('all')==='1';
  if(wantAll&&!admin)return NextResponse.json({error:'Área administrativa: link reservado necessário.'},{status:401});
- const rows=await db<Row[]>('campaigns','select=*&order=created_at.desc'+(admin&&wantAll?'':'&status=eq.published'));
+ const rows=await db<Row[]>('campaigns','select=*&archived_at=is.null&order=created_at.desc'+(admin&&wantAll?'':'&status=eq.published'));
+ const archivedRows=admin&&wantAll?await db<Row[]>('campaigns','select=slug,title,archived_at,archived_by&archived_at=not.is.null&order=archived_at.desc'):[];
+ const archivedCampaigns=archivedRows.map(r=>({id:r.slug,title:r.title,archivedAt:r.archived_at,archivedBy:r.archived_by||''}));
  const campaigns:Campaign[]=await Promise.all(rows.map(async r=>{
   const inst=await db<Row[]>('institutions','select=*&campaign_id=eq.'+r.id+'&order=created_at.asc');
   const institutions:Campaign['institutions']=await Promise.all(inst.map(async i=>{
@@ -30,7 +32,7 @@ export async function GET(request:NextRequest){
  const donations:Donation[]=raw.map(d=>({id:d.id,campaignId:idToSlug.get(d.campaign_id)||'',institutionId:d.institution_id,needId:d.need_id,quantity:Number(d.quantity),group:d.group_name,donor:admin&&wantAll?d.donor_name:'',receivedBy:admin&&wantAll?d.received_by:'',date:d.received_at,source:'new'}));
  for(const a of allocations)donations.push({id:a.id,campaignId:idToSlug.get(a.campaign_id)||'',institutionId:a.institution_id,needId:a.need_id,quantity:Number(a.quantity),group:a.group_name,donor:admin&&wantAll?a.donor_name:'',receivedBy:admin&&wantAll?a.recorded_by:'',date:a.recorded_at,source:'opening'});
  for(const d of donations){const c=campaigns.find(c=>c.id===d.campaignId);const n=c?.institutions.flatMap(i=>i.needs).find(n=>n.id===d.needId);if(n&&d.source!=='opening')n.received+=d.quantity}
- const store:Store={campaigns,donations,settings:{pinEnabled:false}};
+ const store:Store={campaigns,donations,archivedCampaigns,settings:{pinEnabled:false}};
  return NextResponse.json(store,{headers:{'Cache-Control':'no-store, max-age=0'}});
  }catch(e){console.error('Erro ao consultar campanhas',e);return NextResponse.json({error:'Falha ao consultar campanhas.'},{status:500})}
 }
