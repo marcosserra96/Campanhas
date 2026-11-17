@@ -3,7 +3,7 @@ import {isAdmin} from '@/lib/admin-session';
 import {configured,db} from '@/lib/supabase-server';
 export const dynamic='force-dynamic';
 type Row=Record<string,unknown>;
-const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function GET(req:NextRequest){
  if(!await isAdmin())return NextResponse.json({error:'Área reservada à CIPAA.'},{status:401});
  if(!configured())return NextResponse.json({error:'Banco indisponível.'},{status:503});
