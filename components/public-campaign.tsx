@@ -23,7 +23,10 @@ export default function PublicCampaign({id}:{id:string}){
  const pending=Math.max(0,summary.target-summary.received);
  const scores=ranking(c,store.donations);
  const beneficiaries=c.beneficiaries||[];
- const children=beneficiaries.reduce((sum,b)=>sum+b.girls+b.boys,0);
+ const institutionalAudience=c.institutions.map(i=>({id:i.id,name:i.name,kind:i.beneficiaryKind||'unspecified',count:i.beneficiaryCount||0,ages:beneficiaries.filter(b=>b.institutionId===i.id)}));
+ const children=institutionalAudience.filter(i=>i.kind==='children').reduce((sum,i)=>sum+i.count,0);
+ const elderly=institutionalAudience.filter(i=>i.kind==='elderly').reduce((sum,i)=>sum+i.count,0);
+ const totalPeople=institutionalAudience.reduce((sum,i)=>sum+i.count,0);
  const dateRange=[date(c.start),c.end?date(c.end):'sem prazo definido'].join(' até ');
  const isChristmas=c.id==='natal-2026';
  return <div className="collab" style={{'--collab-accent':c.accent} as React.CSSProperties}>
@@ -41,7 +44,7 @@ export default function PublicCampaign({id}:{id:string}){
      <div className="collab-kicker"><Gift size={16}/> {c.subtitle||'Uma iniciativa da CIPAA'}</div>
      <h1>{c.title}</h1>
      <p>{c.description}</p>
-     <div className="collab-hero-meta"><span><CalendarDays size={16}/>{dateRange}</span>{children>0&&<span><HeartHandshake size={17}/>{children} crianças beneficiadas</span>}</div>
+     <div className="collab-hero-meta"><span><CalendarDays size={16}/>{dateRange}</span>{totalPeople>0&&<span><HeartHandshake size={17}/>{number(totalPeople)} pessoas beneficiadas</span>}</div>
      <a href="#materiais" className="collab-primary-action">Veja o que ainda precisamos <ArrowDown size={17}/></a>
     </div>
     <div className={'collab-hero-visual '+(c.banner?'has-banner':'')}>
@@ -103,10 +106,12 @@ export default function PublicCampaign({id}:{id:string}){
      {scores.length>5&&<button className="collab-more" onClick={()=>setExpanded(!expanded)}>{expanded?'Ver menos':'Ver mais equipes'} {expanded?<ChevronUp size={16}/>:<ChevronDown size={16}/>}</button>}</div>
     </section>
     <section className="collab-beneficiaries">
-     <div className="collab-section-title compact"><div><span className="collab-eyebrow">QUEM VAMOS AJUDAR</span><h2>Por trás de cada doação, uma história</h2><p>{children>0?'Conheça o público beneficiado pela campanha.':'Cada doação ajuda as instituições atendidas.'}</p></div></div>
+     <div className="collab-section-title compact"><div><span className="collab-eyebrow">QUEM VAMOS AJUDAR</span><h2>Por trás de cada doação, uma história</h2><p>Conheça o público atendido por cada instituição da campanha.</p></div></div>
      <div className="collab-beneficiary-card">
-      {children>0?<><div className="collab-beneficiary-hero"><div className="collab-beneficiary-icon"><Users size={31}/></div><div><strong>{number(children)}</strong><span>crianças beneficiadas</span></div></div><div className="collab-beneficiary-pills">{beneficiaries.map(b=><span key={b.label}>{b.label} <b>{b.girls+b.boys}</b></span>)}</div><p className="collab-beneficiary-note">O objetivo é garantir mais acolhimento e oportunidades para cada criança.</p></>:<div className="collab-ranking-empty"><HeartHandshake size={35}/><p>As informações sobre o público beneficiado serão compartilhadas pela CIPAA.</p></div>}
-      {c.institutions.length>0&&<div className="collab-institutions"><span>INSTITUIÇÕES ATENDIDAS</span>{c.institutions.map(i=><div key={i.id} className="collab-institution-name"><Heart size={17}/><span>{i.name}</span></div>)}</div>}
+      {totalPeople>0?<><div className="collab-beneficiary-hero"><div className="collab-beneficiary-icon"><Users size={31}/></div><div><strong>{number(totalPeople)}</strong><span>pessoas beneficiadas na campanha</span></div></div>
+      <div className="collab-audience-summary">{children>0&&<span><strong>{number(children)}</strong> crianças</span>}{elderly>0&&<span><strong>{number(elderly)}</strong> idosos</span>}</div>
+      <div className="collab-beneficiary-institution-list">{institutionalAudience.map(i=><div className="collab-beneficiary-institution" key={i.id}><div className="collab-beneficiary-institution-head"><Heart size={18}/><strong>{i.name}</strong><span>{i.count>0?<><b>{number(i.count)}</b> {i.kind==='children'?'crianças':i.kind==='elderly'?'idosos':'pessoas'}</>:'Público não informado'}</span></div>{i.ages.length>0&&<div className="collab-beneficiary-pills">{i.ages.map(b=><span key={b.label}>{b.label} <b>{b.girls+b.boys}</b></span>)}</div>}</div>)}</div>
+      <p className="collab-beneficiary-note">Cada instituição tem necessidades diferentes. Escolha uma delas para saber como contribuir.</p></>:<div className="collab-ranking-empty"><HeartHandshake size={35}/><p>Os dados sobre o público beneficiado serão disponibilizados pela CIPAA.</p><div className="collab-institutions">{institutionalAudience.map(i=><div key={i.id} className="collab-institution-name"><Heart size={17}/>{i.name}</div>)}</div></div>}
      </div>
     </section>
    </div>
