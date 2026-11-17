@@ -13,6 +13,7 @@ export async function GET(request:NextRequest){
  const rows=await db<Row[]>('campaigns','select=*&archived_at=is.null&order=created_at.desc'+(admin&&wantAll?'':'&status=eq.published'));
  const archivedRows=admin&&wantAll?await db<Row[]>('campaigns','select=slug,title,archived_at,archived_by&archived_at=not.is.null&order=archived_at.desc'):[];
  const archivedCampaigns=archivedRows.map(r=>({id:r.slug,title:r.title,archivedAt:r.archived_at,archivedBy:r.archived_by||''}));
+ const contacts=await db<Row[]>('cipaa_company_contacts','select=id,company,name&order=company.asc,name.asc');
  const campaigns:Campaign[]=await Promise.all(rows.map(async r=>{
   const inst=await db<Row[]>('institutions','select=*&campaign_id=eq.'+r.id+'&order=created_at.asc');
   const institutions:Campaign['institutions']=await Promise.all(inst.map(async i=>{
@@ -20,7 +21,7 @@ export async function GET(request:NextRequest){
    return {id:i.id,name:i.name,description:i.description,beneficiaryKind:i.beneficiary_kind||'unspecified',beneficiaryCount:Number(i.beneficiary_count||0),needs:needs.map(n=>({id:n.id,name:n.name,unit:n.unit,target:Number(n.target),received:Number(n.opening_received||0),mode:n.mode==='free'?'free':'target' as 'free'|'target',openingReceived:Number(n.opening_received||0),specification:n.specification||'',points:Number(n.points)}))};
   }));
   const groups=admin&&wantAll?await db<Row[]>('campaign_groups','select=id,name&campaign_id=eq.'+r.id+'&order=name.asc'):[];
-  const contacts=await db<Row[]>('cipaa_company_contacts','select=id,company,name&campaign_id=eq.'+r.id+'&order=company.asc,name.asc');
+
   const giftRows=await Promise.all(inst.map(async i=>await db<Row[]>('gift_requests','select=id,institution_id,beneficiary,gift_name,details,points,status'+(admin&&wantAll?',donor_name,group_name,reserved_at,delivered_at,reserved_by,delivered_by':'')+'&institution_id=eq.'+i.id+'&import_removed_at=is.null&order=created_at.asc')));
   institutions.forEach((i,index)=>{i.gifts=giftRows[index].map(g=>({id:g.id,institutionId:g.institution_id,beneficiary:g.beneficiary,giftName:g.gift_name,details:g.details||'',points:Number(g.points),status:g.status,donor:admin&&wantAll?g.donor_name||'':'',group:admin&&wantAll?g.group_name||'':'',reservedAt:g.reserved_at||'',deliveredAt:g.delivered_at||'',reservedBy:admin&&wantAll?g.reserved_by||'':'',deliveredBy:admin&&wantAll?g.delivered_by||'':''}))});
   const beneficiaries=await db<Row[]>('beneficiary_groups','select=label,girls,boys,institution_id&campaign_id=eq.'+r.id+'&order=label.asc');
