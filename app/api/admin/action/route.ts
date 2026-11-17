@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {isAdmin} from '@/lib/admin-session';
-import {configured,db} from '@/lib/supabase-server';
+import {configured,db,rpc} from '@/lib/supabase-server';
 import {Campaign} from '@/lib/types';
 export const runtime='nodejs';
 type Row=Record<string,unknown>;
@@ -53,6 +53,23 @@ export async function POST(req:NextRequest){
  const slug=txt(body.campaignId,100);const camp=await findCampaign(slug);
  if(!camp)return failure('Campanha não encontrada.',404);
  if(camp.archived_at)return failure('Esta campanha está na lixeira. Restaure-a antes de alterar.',409);
+ if(op==='undoImportBatch'){
+  const batchId=body.batchId as string,actor=txt(body.actor,160),reason=txt(body.reason,500);
+  if(!valid(batchId)||actor.length<2||reason.length<5)return failure('Informe o responsável e o motivo da correção (mínimo 5 caracteres).');
+  const owned=await db<Row[]>('import_batches','select=id,undone_at&campaign_id=eq.'+camp.id+'&id=eq.'+batchId);
+  if(!owned.length)return failure('Importação não encontrada nesta campanha.',404);
+  if(owned[0].undone_at)return failure('Esta importação já foi desfeita.');
+  try{
+   const count=await rpc<number>('undo_campaign_import',{p_batch:batchId,p_actor:actor,p_reason:reason});
+   return NextResponse.json({ok:true,undone:count});
+  }catch(e){
+   const raw=e instanceof Error?e.message:'Erro desconhecido';
+   let detail='Não foi possível desfazer esta importação. Verifique se existem doações, reservas ou alterações vinculadas.';
+   const match=raw.match(/"message":"([^"]+)"/);
+   if(match&&match[1]&&!/sql|postgres|function|schema|syntax/i.test(match[1]))detail=match[1];
+   return failure(detail,409);
+  }
+ }
  if(op==='addCampaignGroup'){
   const name=txt(body.name,120);
   if(!name)return failure('Informe o nome do setor ou grupo.');
@@ -174,8 +191,8 @@ export async function POST(req:NextRequest){
      return failure('Verifique material, quantidade, doador, grupo e responsável na linha '+(index+2)+'.');
    mapped.push({campaign_id:camp.id,institution_id:iid,need_id:matched[0].id,quantity,donor_name:donor,group_name:String(groups.find(g=>String(g.name).toLocaleLowerCase('pt-BR')===group.toLocaleLowerCase('pt-BR'))!.name),received_by:receivedBy});
   }
-  await db('donations','','POST',mapped);
-  return NextResponse.json({ok:true,imported:mapped.length});
+  const batchId=await rpc<string>('create_campaign_import',{p_campaign:camp.id,p_institution:iid,p_kind:'donations',p_rows:mapped,p_actor:txt(body.actor,160)||'CIPAA'});
+  return NextResponse.json({ok:true,imported:mapped.length,batchId});
  }
  if(op==='bulkAddGifts'){
   const iid=body.institutionId as string;
@@ -184,8 +201,8 @@ export async function POST(req:NextRequest){
   if(!Array.isArray(items)||!items.length||items.length>300)return failure('Importe entre 1 e 300 presentes por vez.');
   const mapped=items.map((x,i)=>({institution_id:iid,beneficiary:txt(x.beneficiary,160),gift_name:txt(x.giftName,200),details:txt(x.details,500),points:x.points,row:i+1}));
   if(mapped.some(x=>!x.beneficiary||!x.gift_name||!finite(x.points)))return failure('Há linhas com beneficiário, presente ou pontos inválidos.');
-  await db('gift_requests','','POST',mapped.map(({row,...rest})=>rest));
-  return NextResponse.json({ok:true,imported:mapped.length});
+  const batchId=await rpc<string>('create_campaign_import',{p_campaign:camp.id,p_institution:iid,p_kind:'gifts',p_rows:mapped.map(({row,...rest})=>rest),p_actor:txt(body.actor,160)||'CIPAA'});
+  return NextResponse.json({ok:true,imported:mapped.length,batchId});
  }
  if(op==='bulkAddNeeds'){
   const iid=body.institutionId as string;
@@ -194,8 +211,8 @@ export async function POST(req:NextRequest){
   if(!Array.isArray(items)||!items.length||items.length>300)return failure('Importe entre 1 e 300 materiais por vez.');
   const mapped=items.map(x=>({institution_id:iid,name:txt(x.name,150),unit:txt(x.unit,30)||'unidade(s)',target:x.mode==='free'?0:x.target,points:x.points,mode:x.mode==='free'?'free':'target',specification:txt(x.specification,250)}));
   if(mapped.some(x=>!x.name||!finite(x.target)||(x.mode==='target'&&x.target===0)||!finite(x.points)))return failure('Existem materiais inválidos.');
-  await db('needs','','POST',mapped);
-  return NextResponse.json({ok:true,imported:mapped.length});
+  const batchId=await rpc<string>('create_campaign_import',{p_campaign:camp.id,p_institution:iid,p_kind:'needs',p_rows:mapped,p_actor:txt(body.actor,160)||'CIPAA'});
+  return NextResponse.json({ok:true,imported:mapped.length,batchId});
  }
  if(op==='saveInstitution'){
  const item=body.institution as {id?:string;name:string;description?:string};
