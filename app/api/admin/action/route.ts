@@ -28,6 +28,27 @@ export async function POST(req:NextRequest){
   await db('cipaa_company_contacts','','POST',{company,name});
   return NextResponse.json({ok:true});
  }
+ if(op==='bulkAddCompanyContacts'){
+  const company=txt(body.company,30);
+  const incoming=body.names;
+  if(!COMPANIES.some(c=>c===company)||!Array.isArray(incoming)||incoming.length<1||incoming.length>150)
+    return failure('Selecione a empresa e informe até 150 nomes por vez.');
+  const normalize=(name:string)=>name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').toLocaleLowerCase('pt-BR').trim();
+  const cleaned:string[]=[];
+  const seen=new Set<string>();
+  for(const raw of incoming){
+   if(typeof raw!=='string'||raw.length>300)return failure('A lista contém dados inválidos.');
+   const name=raw.replace(/\s+/g,' ').trim();
+   if(name.length<3||name.length>160)return failure('Há nomes vazios, incompletos ou com mais de 160 caracteres.');
+   const key=normalize(name);
+   if(!seen.has(key)){cleaned.push(name);seen.add(key)}
+  }
+  const existing=await db<Row[]>('cipaa_company_contacts','select=name&company=eq.'+encodeURIComponent(company));
+  const known=new Set(existing.map(x=>normalize(String(x.name))));
+  const toCreate=cleaned.filter(name=>!known.has(normalize(name)));
+  if(toCreate.length)await db('cipaa_company_contacts','','POST',toCreate.map(name=>({company,name})));
+  return NextResponse.json({ok:true,added:toCreate.length,skipped:cleaned.length-toCreate.length});
+ }
  if(op==='removeCompanyContact'){
   const id=body.contactId;
   if(!valid(id))return failure('Contato inválido.');
@@ -103,7 +124,8 @@ export async function POST(req:NextRequest){
  }
  if(op==='setGiftDeadline'){
   const deadline=txt(body.deadline,10);
-  if(deadline&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(deadline))return failure('Data de entrega inválida.');
+  if(deadline&&!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(deadline))return failure('Data de entrega inválida.');
+  if(deadline&&new Date(deadline+'T12:00:00Z').toISOString().slice(0,10)!==deadline)return failure('Data de entrega inválida.');
   await db('campaigns','id=eq.'+camp.id,'PATCH',{gift_delivery_deadline:deadline||null});
   return NextResponse.json({ok:true});
  }
