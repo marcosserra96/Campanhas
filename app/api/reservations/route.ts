@@ -1,7 +1,6 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {createHmac} from 'node:crypto';
-import {configured,rpc} from '@/lib/supabase-server';
-import {COMPANIES} from '@/lib/types';
+import {configured,rpc,db} from '@/lib/supabase-server';
 export const runtime='nodejs';
 const idPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function POST(request:NextRequest){
@@ -13,8 +12,10 @@ export async function POST(request:NextRequest){
   const giftId=typeof body.giftId==='string'?body.giftId:'';
   const company=typeof body.company==='string'?body.company:'';
   const fullName=typeof body.fullName==='string'?body.fullName.replace(/\s+/g,' ').trim():'';
-  if(!idPattern.test(giftId)||!COMPANIES.some(c=>c===company)||fullName.length<5||fullName.length>160||fullName.split(' ').length<2)
+  if(!idPattern.test(giftId)||!company||company.length>120||fullName.length<5||fullName.length>160||fullName.split(' ').length<2)
     return NextResponse.json({error:'Selecione um presente, sua empresa e informe seu nome completo.'},{status:400});
+  const validCompany=await db<Array<{name:string}>>('cipaa_companies','select=name&active=eq.true&name=eq.'+encodeURIComponent(company));
+  if(!validCompany.length)return NextResponse.json({error:'Empresa indisponível. Atualize a lista e selecione outra.'},{status:400});
   const secret=process.env.ADMIN_ACCESS_TOKEN||process.env.SUPABASE_SECRET_KEY||'';
   if(secret.length<32)return NextResponse.json({error:'Reservas temporariamente indisponíveis.'},{status:503});
   const ip=(request.headers.get('x-forwarded-for')||request.headers.get('x-real-ip')||'indisponivel').split(',')[0].trim().slice(0,120);
