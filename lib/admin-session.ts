@@ -8,3 +8,18 @@ function compare(a:string,b:string){const x=Buffer.from(a);const y=Buffer.from(b
 export function validAccessToken(token:string){const s=secret();return s.length>=32&&compare(token,s)}
 export async function isAdmin(){const s=secret();if(s.length<32)return false;const raw=(await cookies()).get(cookieName)?.value||'';const [expiry,signature]=raw.split('.');if(!expiry||!signature||!/^\d+$/.test(expiry)||Number(expiry)<Date.now())return false;return compare(signature,sign(expiry))}
 export async function createSession(){const expires=String(Date.now()+7*24*60*60*1000);(await cookies()).set(cookieName,expires+'.'+sign(expires),{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/',maxAge:7*24*60*60})}
+
+/** Shared CIPAA invitations authorize access without exposing the master access token. */
+export function createInviteToken(){
+ const expiry=String(Date.now()+30*24*60*60*1000);
+ return expiry+'.'+sign('cipaa-invite-v1:'+expiry);
+}
+export function validInviteToken(token:string){
+ const s=secret();
+ if(s.length<32)return false;
+ const [expiry,signature,...extra]=token.split('.');
+ if(extra.length||!expiry||!signature||!/^\d{13}$/.test(expiry))return false;
+ const deadline=Number(expiry);
+ if(!Number.isSafeInteger(deadline)||deadline<=Date.now()||deadline>Date.now()+30*24*60*60*1000+60000)return false;
+ return compare(signature,sign('cipaa-invite-v1:'+expiry));
+}
