@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {isAdmin} from '@/lib/admin-session';
 import {configured,db} from '@/lib/supabase-server';
-import {Campaign,Donation,Store,ranking} from '@/lib/types';
+import {Campaign,Donation,Store,ranking,COMPANIES,Company} from '@/lib/types';
 export const dynamic='force-dynamic';
 type Row=Record<string,any>;
 export async function GET(request:NextRequest){
@@ -20,10 +20,11 @@ export async function GET(request:NextRequest){
    return {id:i.id,name:i.name,description:i.description,beneficiaryKind:i.beneficiary_kind||'unspecified',beneficiaryCount:Number(i.beneficiary_count||0),needs:needs.map(n=>({id:n.id,name:n.name,unit:n.unit,target:Number(n.target),received:Number(n.opening_received||0),mode:n.mode==='free'?'free':'target' as 'free'|'target',openingReceived:Number(n.opening_received||0),specification:n.specification||'',points:Number(n.points)}))};
   }));
   const groups=admin&&wantAll?await db<Row[]>('campaign_groups','select=id,name&campaign_id=eq.'+r.id+'&order=name.asc'):[];
+  const contacts=await db<Row[]>('cipaa_company_contacts','select=id,company,name&campaign_id=eq.'+r.id+'&order=company.asc,name.asc');
   const giftRows=await Promise.all(inst.map(async i=>await db<Row[]>('gift_requests','select=id,institution_id,beneficiary,gift_name,details,points,status'+(admin&&wantAll?',donor_name,group_name,reserved_at,delivered_at,reserved_by,delivered_by':'')+'&institution_id=eq.'+i.id+'&import_removed_at=is.null&order=created_at.asc')));
   institutions.forEach((i,index)=>{i.gifts=giftRows[index].map(g=>({id:g.id,institutionId:g.institution_id,beneficiary:g.beneficiary,giftName:g.gift_name,details:g.details||'',points:Number(g.points),status:g.status,donor:admin&&wantAll?g.donor_name||'':'',group:admin&&wantAll?g.group_name||'':'',reservedAt:g.reserved_at||'',deliveredAt:g.delivered_at||'',reservedBy:admin&&wantAll?g.reserved_by||'':'',deliveredBy:admin&&wantAll?g.delivered_by||'':''}))});
   const beneficiaries=await db<Row[]>('beneficiary_groups','select=label,girls,boys,institution_id&campaign_id=eq.'+r.id+'&order=label.asc');
-  return {groups:groups.map(g=>({id:g.id,name:g.name})),beneficiaries:beneficiaries.map(b=>({label:b.label,girls:Number(b.girls),boys:Number(b.boys),institutionId:b.institution_id||undefined})),id:r.slug,title:r.title,subtitle:r.subtitle,description:r.description,start:r.starts_on||'',end:r.ends_on||'',status:r.status,accent:r.accent,banner:r.banner_url||'',institutions,rankingBy:r.ranking_by,rankingMode:r.ranking_mode,showItemPoints:r.show_item_points===true} as Campaign;
+  return {cipaaContacts:contacts.filter(x=>COMPANIES.some(k=>k===x.company)).map(x=>({id:x.id,company:x.company as Company,name:String(x.name)})),giftDeliveryDeadline:r.gift_delivery_deadline||'',groups:groups.filter(g=>COMPANIES.some(k=>k===g.name)).map(g=>({id:g.id,name:g.name})),beneficiaries:beneficiaries.map(b=>({label:b.label,girls:Number(b.girls),boys:Number(b.boys),institutionId:b.institution_id||undefined})),id:r.slug,title:r.title,subtitle:r.subtitle,description:r.description,start:r.starts_on||'',end:r.ends_on||'',status:r.status,accent:r.accent,banner:r.banner_url||'',institutions,rankingBy:r.ranking_by,rankingMode:r.ranking_mode,showItemPoints:r.show_item_points===true} as Campaign;
  }));
  const idToSlug=new Map(rows.map(r=>[r.id,r.slug]));
  const allowedIds=rows.map(r=>r.id);
