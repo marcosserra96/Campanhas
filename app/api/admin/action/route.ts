@@ -215,9 +215,12 @@ export async function POST(req:NextRequest){
   return NextResponse.json({ok:true,imported:mapped.length,batchId});
  }
  if(op==='saveInstitution'){
- const item=body.institution as {id?:string;name:string;description?:string};
+ const item=body.institution as {id?:string;name:string;description?:string;beneficiaryKind?:string;beneficiaryCount?:number};
  if(!item||!txt(item.name,160))return failure('Informe a instituição.');
- const data={campaign_id:camp.id,name:txt(item.name,160),description:txt(item.description,2000)};
+ const kind=item.beneficiaryKind||'unspecified';
+ const count=item.beneficiaryCount??0;
+ if(!['unspecified','children','elderly','people'].includes(kind)||!Number.isInteger(count)||count<0||count>1000000)return failure('Informe um público beneficiado válido.');
+ const data={campaign_id:camp.id,name:txt(item.name,160),description:txt(item.description,2000),beneficiary_kind:kind,beneficiary_count:count};
  if(valid(item.id)){
   if(!await campaignOwnsInstitution(String(camp.id),item.id!))return failure('Instituição não pertence à campanha.',403);
   await db('institutions','id=eq.'+item.id,'PATCH',data);
