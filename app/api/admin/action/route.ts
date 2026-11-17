@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {isAdmin} from '@/lib/admin-session';
 import {configured,db,rpc} from '@/lib/supabase-server';
-import {Campaign} from '@/lib/types';
+import {Campaign,COMPANIES} from '@/lib/types';
 export const runtime='nodejs';
 type Row=Record<string,unknown>;
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -45,9 +45,9 @@ export async function POST(req:NextRequest){
  if(c.end&&c.start&&c.end<c.start)return failure('Data final anterior ao início.');
  const existing=await findCampaign(c.id);
  if(existing?.archived_at)return failure('Esta campanha está na lixeira. Restaure-a antes de editar.',409);
- const data={slug:c.id,title:txt(c.title,160),subtitle:txt(c.subtitle,200),description:txt(c.description,4000),starts_on:c.start||null,ends_on:c.end||null,status:c.status,accent:/^#[0-9a-f]{6}$/i.test(c.accent)?c.accent:'#66b900',banner_url:c.banner&&/^https:\/\//.test(c.banner)?txt(c.banner,1200):null,ranking_by:c.rankingBy,ranking_mode:c.rankingMode,show_item_points:c.showItemPoints===true,updated_at:new Date().toISOString()};
+ const data={slug:c.id,title:txt(c.title,160),subtitle:txt(c.subtitle,200),description:txt(c.description,4000),starts_on:c.start||null,ends_on:c.end||null,status:c.status,accent:/^#[0-9a-f]{6}$/i.test(c.accent)?c.accent:'#66b900',banner_url:c.banner&&/^https:\/\//.test(c.banner)?txt(c.banner,1200):null,ranking_by:'equipe',ranking_mode:c.rankingMode,show_item_points:c.showItemPoints===true,updated_at:new Date().toISOString()};
  if(existing)await db('campaigns','id=eq.'+existing.id,'PATCH',data);
- else await db('campaigns','','POST',data);
+ else {const created=await db<Row[]>('campaigns','','POST',data);if(created[0]?.id)await db('campaign_groups','','POST',COMPANIES.map(name=>({campaign_id:created[0].id,name})));}
  return NextResponse.json({ok:true});
  }
  const slug=txt(body.campaignId,100);const camp=await findCampaign(slug);
@@ -85,26 +85,29 @@ export async function POST(req:NextRequest){
    return failure(detail,409);
   }
  }
- if(op==='addCampaignGroup'){
-  const name=txt(body.name,120);
-  if(!name)return failure('Informe o nome do setor ou grupo.');
-  const existing=await db<Row[]>('campaign_groups','select=id,name&campaign_id=eq.'+camp.id);
-  if(existing.some(g=>String(g.name).trim().toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))return failure('Esse setor/grupo já está cadastrado.');
-  await db('campaign_groups','','POST',{campaign_id:camp.id,name});
+ if(op==='setGiftDeadline'){
+  const deadline=txt(body.deadline,10);
+  if(deadline&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(deadline))return failure('Data de entrega inválida.');
+  await db('campaigns','id=eq.'+camp.id,'PATCH',{gift_delivery_deadline:deadline||null});
   return NextResponse.json({ok:true});
  }
- if(op==='removeCampaignGroup'){
-  const gid=body.groupId;
-  if(!valid(gid))return failure('Grupo inválido.');
-  const rows=await db<Row[]>('campaign_groups','select=id,name&campaign_id=eq.'+camp.id+'&id=eq.'+gid);
-  if(!rows.length)return failure('Grupo não encontrado.',404);
-  const groupName=String(rows[0].name);
-  const active=await db<Row[]>('donations','select=id,group_name&campaign_id=eq.'+camp.id+'&voided_at=is.null');
-  const prior=await db<Row[]>('opening_attributions','select=id,group_name&campaign_id=eq.'+camp.id+'&voided_at=is.null');
-  if([...active,...prior].some(r=>String(r.group_name).toLocaleLowerCase('pt-BR')===groupName.toLocaleLowerCase('pt-BR')))return failure('Este grupo possui registros de arrecadação e não pode ser removido.');
-  await db('campaign_groups','id=eq.'+gid+'&campaign_id=eq.'+camp.id,'DELETE');
+ if(op==='addCompanyContact'){
+  const company=txt(body.company,30),name=txt(body.name,160);
+  if(!COMPANIES.some(c=>c===company)||name.length<3)return failure('Selecione a empresa e informe o nome do membro da CIPAA.');
+  const known=await db<Row[]>('cipaa_company_contacts','select=id,name&campaign_id=eq.'+camp.id+'&company=eq.'+encodeURIComponent(company));
+  if(known.some(x=>String(x.name).toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))return failure('Este membro já está cadastrado para a empresa.');
+  await db('cipaa_company_contacts','','POST',{campaign_id:camp.id,company,name});
   return NextResponse.json({ok:true});
  }
+ if(op==='removeCompanyContact'){
+  const id=body.contactId;
+  if(!valid(id))return failure('Contato inválido.');
+  const existing=await db<Row[]>('cipaa_company_contacts','select=id&campaign_id=eq.'+camp.id+'&id=eq.'+id);
+  if(!existing.length)return failure('Contato não encontrado.',404);
+  await db('cipaa_company_contacts','id=eq.'+id+'&campaign_id=eq.'+camp.id,'DELETE');
+  return NextResponse.json({ok:true});
+ }
+ if(op==='addCampaignGroup'||op==='removeCampaignGroup')return failure('As empresas são fixas: EMR, CSE e (RE) Energisa.');
  if(op==='attributeOpening'){
   const nid=body.needId as string;const quantity=body.quantity as number;
   const donor=txt(body.donor,160),group=txt(body.group,120),actor=txt(body.actor,160);
