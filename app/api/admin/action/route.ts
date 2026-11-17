@@ -12,7 +12,7 @@ const failure=(message:string,status=400)=>NextResponse.json({error:message},{st
 async function findCampaign(slug:string){const data=await db<Row[]>('campaigns','select=id,slug,status,archived_at&slug=eq.'+encodeURIComponent(slug));return data[0]}
 async function needInfo(needId:string){const ns=await db<Row[]>('needs','select=id,institution_id&import_removed_at=is.null&id=eq.'+needId);return ns[0]}
 async function campaignOwnsInstitution(campaignId:string,institutionId:string){const inst=await db<Row[]>('institutions','select=id&campaign_id=eq.'+campaignId+'&id=eq.'+institutionId);return inst.length>0}
-async function validGroup(campaignId:string,name:string){const rows=await db<Row[]>('campaign_groups','select=name&campaign_id=eq.'+campaignId);return rows.some(r=>String(r.name).toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR'))}
+async function validGroup(campaignId:string,name:string){if(!COMPANIES.some(x=>x===name))return false;const rows=await db<Row[]>('campaign_groups','select=name&campaign_id=eq.'+campaignId);return rows.some(r=>r.name===name)}
 export async function POST(req:NextRequest){
  if(!configured())return failure('Supabase ainda não configurado.',503);
  if(!await isAdmin())return failure('Acesso restrito à CIPAA.',401);
