@@ -1,6 +1,7 @@
 'use client';
 import {useMemo,useState} from 'react';
 import {Campaign} from '@/lib/types';
+import PointsEditor from '@/components/points-editor';
 import {Download,Upload,FileSpreadsheet,CheckCircle2,Info,ShieldCheck} from 'lucide-react';
 type Run=(op:string,params:Record<string,unknown>)=>Promise<boolean>;
 type PointItem={id:string;type:'need'|'gift';institution:string;name:string;details:string;points:number};
@@ -77,7 +78,9 @@ export default function PointsWorkbook({campaign,run,busy}:{campaign:Campaign;ru
   if(ok){setSuccess(changes.length+' pontuações enviadas para atualização. Histórico de auditoria preservado.');setChanges([]);setFileName('')}
  }
  return <section className="panel points-workbook">
-  <div className="panel-header"><div><h3><FileSpreadsheet size={19}/> Exportar e importar pontuações</h3><p className="muted">Todos os materiais e presentes da campanha em uma planilha única, independentemente da instituição.</p></div><span className="pill">{all.length} itens</span></div>
+  <PointsEditor key={campaign.id} campaign={campaign} run={run} busy={busy}/>
+  <details className="points-csv-details"><summary><FileSpreadsheet size={18}/> Exportar ou importar pelo Excel <span>Opção para alterações em lote</span></summary><div className="points-csv-content">
+  <div className="panel-header"><div><h3><FileSpreadsheet size={19}/> Planilha de pontuações</h3><p className="muted">Todos os materiais e presentes em um arquivo único, independentemente da instituição.</p></div><span className="pill">{all.length} itens</span></div>
   <div className="points-workflow">
    <div className="points-workflow-step"><span className="points-step-number">1</span><div><strong>Baixe a relação completa</strong><p>Abra no Excel. Preencha somente a coluna <b>Nova pontuação</b>; mantenha os códigos dos itens.</p><button className="btn outline" disabled={!all.length} onClick={exportCSV}><Download size={17}/> Exportar pontuações (CSV para Excel)</button></div></div>
    <div className="points-workflow-step"><span className="points-step-number">2</span><div><strong>Importe o arquivo preenchido</strong><p>As linhas em branco não serão modificadas. A importação altera apenas os pontos.</p><label className="points-file-picker"><Upload size={16}/> {fileName||'Selecionar CSV preenchido'}<input type="file" accept=".csv,.txt,text/csv,text/plain" onChange={e=>{void readFile(e.target.files?.[0]);e.target.value=''}}/></label></div></div>
@@ -86,5 +89,6 @@ export default function PointsWorkbook({campaign,run,busy}:{campaign:Campaign;ru
   {success&&<p className="donation-notification"><CheckCircle2 size={17}/>{success}</p>}
   {changes.length>0&&<div className="points-import-review"><div className="panel-header"><div><h4>{changes.length} pontuações serão atualizadas</h4><p className="muted">Confira a prévia antes de confirmar. Outros campos da campanha não serão alterados.</p></div></div><div className="donation-v2-table-scroll"><table><thead><tr><th>Instituição</th><th>Item</th><th>Antes</th><th>Depois</th></tr></thead><tbody>{changes.slice(0,50).map(x=><tr key={x.type+x.id}><td>{x.institution}</td><td>{x.name}</td><td>{x.oldPoints.toLocaleString('pt-BR')}</td><td><strong>{x.points.toLocaleString('pt-BR')}</strong></td></tr>)}</tbody></table></div>{changes.length>50&&<p className="hint">Mostrando as primeiras 50 alterações de {changes.length}.</p>}<div className="points-import-fields"><label className="donation-v2-field"><span>Responsável CIPAA *</span><input value={actor} onChange={e=>setActor(e.target.value)} placeholder="Seu nome"/></label><label className="donation-v2-field"><span>Motivo *</span><input value={reason} onChange={e=>setReason(e.target.value)} placeholder="Ex.: revisão das regras de pontuação"/></label></div><button className="btn primary" disabled={busy||actor.trim().length<2||reason.trim().length<5} onClick={()=>void apply()}><ShieldCheck size={17}/> Confirmar atualização de {changes.length} itens</button></div>}
   <p className="hint"><Info size={14}/> O arquivo contém os nomes para facilitar a revisão, mas o sistema usa os códigos para atualizar somente os itens corretos. A alteração é auditada.</p>
+  </div></details>
  </section>;
 }
