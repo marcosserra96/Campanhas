@@ -933,3 +933,20 @@
 .gift-adopt-success .gift-adopt-contact-box{width:100%;text-align:left}
 @media(max-width:600px){.gift-adopt-modal{padding:18px;border-radius:14px}.gift-adopt-modal-head h3{font-size:19px}}
 @media(prefers-reduced-motion:reduce){.gift-public-adopt-button{transition:none}}
+
+
+/* Configurações CIPAA — importação de membros por colagem do Excel */
+.company-bulk-paste{margin-top:25px;padding:22px;border:1px solid #dbe9ec;border-radius:13px;background:#f8fbfc}
+.company-bulk-paste .panel-header{margin-bottom:14px}
+.company-bulk-paste .panel-header h4{font-size:16px;margin:0 0 5px;color:#244f64}
+.company-bulk-paste .panel-header p{font-size:12px;line-height:1.6;margin:0}
+.company-bulk-fields{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:start;margin-bottom:14px}
+.company-bulk-fields .donation-v2-field{min-width:0}
+.company-bulk-fields textarea{width:100%;min-height:130px;resize:vertical}
+.company-bulk-preview{background:#fff;border:1px solid #dce7ed;border-radius:11px;padding:14px;margin:13px 0}
+.company-bulk-preview>strong{font-size:12px;color:#27596a}
+.company-bulk-preview>p{font-size:11px;color:#8297a3;margin:7px 0}
+.company-bulk-preview .company-bulk-warning{color:#b16e37;font-weight:700}
+.company-bulk-names{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.company-bulk-names span{font-size:11px;color:#386978;background:#eef7f8;border:1px solid #deedef;border-radius:7px;padding:6px 8px;overflow-wrap:anywhere}
+@media(max-width:720px){.company-bulk-fields{grid-template-columns:1fr}.company-bulk-paste{padding:15px}}
