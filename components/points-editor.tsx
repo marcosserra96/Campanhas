@@ -66,7 +66,7 @@ export default function PointsEditor({campaign,run,busy}:{campaign:Campaign;run:
    const bad=g.members.some(x=>draft[itemKey(x)]!==undefined&&!validValue(draft[itemKey(x)]));
    const opened=expanded[g.key]===true;
    const showValue=uniform&&values[0]!==null?String(values[0]):'';
-   return <Fragment key={g.key}><tr> className={bad?'points-editor-invalid':dirty?'points-editor-dirty':''}>
+   return <Fragment key={g.key}><tr className={bad?'points-editor-invalid':dirty?'points-editor-dirty':''}>
     <td>{g.institution}</td><td><span className={'points-editor-type '+(g.type==='gift'?'gift':'')}>{g.type==='gift'?'Presente':'Material'}</span></td>
     <td className="points-editor-item"><div className="points-group-label"><strong>{g.name}</strong>{g.members.length>1&&<span className="points-group-count">{g.members.length} registros</span>}</div>{g.members.length>1?<button type="button" className="points-group-expand" aria-expanded={opened} onClick={()=>setExpanded(e=>({...e,[g.key]:!opened}))}>{opened?<ChevronDown size={14}/>:<ChevronRight size={14}/>} {opened?'Ocultar pessoas / registros':'Ver pessoas / registros'}</button>:g.members[0].details&&<small>{g.members[0].details}</small>}</td>
     <td className="points-editor-num">{oldUniform?fmt(g.members[0].points):<span className="points-group-mixed">Valores diferentes</span>}</td>
