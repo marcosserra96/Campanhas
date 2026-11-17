@@ -10,7 +10,7 @@ function date(value:string){return value?new Date(value+'T12:00:00').toLocaleDat
 function percentage(received:number,target:number){return progress(received,target)}
 function isDone(n:Need){return n.received>=n.target}
 export default function PublicCampaign({id}:{id:string}){
- const {store,ready,error,refresh}=useStore();
+ const {store,ready,error}=useStore();
  const [filter,setFilter]=useState<'pending'|'all'|'done'>('pending');
  const [search,setSearch]=useState('');
  const [openInstitution,setOpenInstitution]=useState<string|null>(null);
@@ -22,8 +22,7 @@ export default function PublicCampaign({id}:{id:string}){
  const pct=percentage(summary.received,summary.target);
  const pending=Math.max(0,summary.target-summary.received);
  const scores=ranking(c,store.donations);
- const beneficiaries=c.beneficiaries||[];
- const institutionalAudience=c.institutions.map(i=>({id:i.id,name:i.name,kind:i.beneficiaryKind||'unspecified',count:i.beneficiaryCount||0,ages:beneficiaries.filter(b=>b.institutionId===i.id)}));
+ const institutionalAudience=c.institutions.map(i=>({id:i.id,name:i.name,kind:i.beneficiaryKind||'unspecified',count:i.beneficiaryCount||0}));
  const children=institutionalAudience.filter(i=>i.kind==='children').reduce((sum,i)=>sum+i.count,0);
  const elderly=institutionalAudience.filter(i=>i.kind==='elderly').reduce((sum,i)=>sum+i.count,0);
  const totalPeople=institutionalAudience.reduce((sum,i)=>sum+i.count,0);
@@ -36,7 +35,6 @@ export default function PublicCampaign({id}:{id:string}){
     <span className="collab-brand-rule"/>
     <img src="/brand/cipaa.svg" alt="CIPAA Segurança" className="collab-logo-cipaa"/>
    </Link>
-   <div className="collab-header-right"><span className="collab-live"><span className="collab-live-dot"/>{c.status==='closed'?'Campanha encerrada':'Campanha solidária'}</span><button className="collab-refresh" onClick={()=>void refresh()} title="Atualizar informações" aria-label="Atualizar informações"><RefreshCw size={17}/></button></div>
   </div></header>
   <main className="collab-content">
    <section className={"collab-hero "+(c.banner?"with-campaign-art":"")} style={c.banner?{backgroundImage:"linear-gradient(90deg,rgba(5,33,55,.97) 0%,rgba(5,37,58,.84) 40%,rgba(5,37,58,.12) 73%),url("+JSON.stringify(c.banner)+")"}:undefined}>
@@ -69,15 +67,23 @@ export default function PublicCampaign({id}:{id:string}){
        const gifts=inst.gifts||[];
        const target=targeted.reduce((sum,n)=>sum+n.target,0)+gifts.length;
        const received=targeted.reduce((sum,n)=>sum+n.received,0)+gifts.filter(g=>g.status==='delivered').length;
-       const missing=Math.max(0,target-received);
-       const pendingItems=targeted.filter(n=>!isDone(n)).length+gifts.filter(g=>g.status!=='delivered').length;
+       const materialMissing=targeted.reduce((sum,n)=>sum+Math.max(0,n.target-n.received),0);
+       const giftAvailable=gifts.filter(g=>g.status==='available').length;
+       const giftReserved=gifts.filter(g=>g.status==='reserved').length;
+       const giftDelivered=gifts.filter(g=>g.status==='delivered').length;
        const isOpen=openInstitution===inst.id;
        const visible=inst.needs.filter(n=>(n.mode==='free'||filter==='all'||(filter==='pending'?!isDone(n):isDone(n)))&&[n.name,n.specification||''].join(' ').toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR')));
        return <article className={'collab-institution-accordion-card '+(isOpen?'is-expanded':'')} key={inst.id}>
         <button type="button" className="collab-institution-trigger" onClick={()=>{setOpenInstitution(isOpen?null:inst.id);setFilter('pending');setSearch('')}} aria-expanded={isOpen} aria-controls={'institution-details-'+inst.id}>
          <span className="collab-institution-symbol"><HeartHandshake size={27}/></span>
          <span className="collab-institution-summary"><strong>{inst.name}</strong>{inst.description&&<small>{inst.description}</small>}{target>0?<span className="collab-institution-track"><span className="collab-meter slim"><span style={{width:percentage(received,target)+'%'}}/></span><span>{number(received)} de {number(target)} concluídos</span></span>:<span className="gift-text-mini">Arrecadações sem meta definida</span>}</span>
-         <span className="collab-institution-totals">{target>0?<><strong>{number(missing)}</strong><small>{missing===0?'Meta atingida':'pendências'}</small></>:<><strong>{free.length}</strong><small>formas de ajudar</small></>}<em>{gifts.filter(g=>g.status==='available').length} presentes disponíveis</em></span>
+         <span className="collab-institution-totals">
+          {targeted.length>0&&<span className="collab-institution-quantity"><strong>{number(materialMissing)}</strong><small>{materialMissing===0?'Meta de materiais atingida':'materiais faltando'}</small></span>}
+          {gifts.length>0&&<span className="collab-institution-quantity gifts"><strong>{number(giftAvailable)}</strong><small>{giftAvailable===1?'presente disponível':'presentes disponíveis'}</small></span>}
+          {gifts.length>0&&(giftReserved>0||giftDelivered>0)&&<span className="collab-institution-secondary">{giftReserved>0&&<small>{number(giftReserved)} reservados</small>}{giftDelivered>0&&<small>{number(giftDelivered)} entregues</small>}</span>}
+          {free.length>0&&<span className="collab-institution-secondary"><small>{free.length===1?'1 arrecadação livre':free.length+' arrecadações livres'}</small></span>}
+          {!targeted.length&&!gifts.length&&!free.length&&<span className="collab-institution-secondary"><small>Informações em preparação</small></span>}
+         </span>
          <span className="collab-institution-expand" aria-hidden="true">{isOpen?<ChevronUp size={20}/>:<ChevronDown size={20}/>}</span>
         </button>
         {isOpen&&<div className="collab-institution-details" id={'institution-details-'+inst.id}>
@@ -110,7 +116,7 @@ export default function PublicCampaign({id}:{id:string}){
      <div className="collab-beneficiary-card">
       {totalPeople>0?<><div className="collab-beneficiary-hero"><div className="collab-beneficiary-icon"><Users size={31}/></div><div><strong>{number(totalPeople)}</strong><span>pessoas beneficiadas na campanha</span></div></div>
       <div className="collab-audience-summary">{children>0&&<span><strong>{number(children)}</strong> crianças</span>}{elderly>0&&<span><strong>{number(elderly)}</strong> idosos</span>}</div>
-      <div className="collab-beneficiary-institution-list">{institutionalAudience.map(i=><div className="collab-beneficiary-institution" key={i.id}><div className="collab-beneficiary-institution-head"><Heart size={18}/><strong>{i.name}</strong><span>{i.count>0?<><b>{number(i.count)}</b> {i.kind==='children'?'crianças':i.kind==='elderly'?'idosos':'pessoas'}</>:'Público não informado'}</span></div>{i.ages.length>0&&<div className="collab-beneficiary-pills">{i.ages.map(b=><span key={b.label}>{b.label} <b>{b.girls+b.boys}</b></span>)}</div>}</div>)}</div>
+      <div className="collab-beneficiary-institution-list">{institutionalAudience.map(i=><div className="collab-beneficiary-institution" key={i.id}><div className="collab-beneficiary-institution-head"><Heart size={18}/><strong>{i.name}</strong><span>{i.count>0?<><b>{number(i.count)}</b> {i.kind==='children'?'crianças':i.kind==='elderly'?'idosos':'pessoas'}</>:'Público não informado'}</span></div></div>)}</div>
       <p className="collab-beneficiary-note">Cada instituição tem necessidades diferentes. Escolha uma delas para saber como contribuir.</p></>:<div className="collab-ranking-empty"><HeartHandshake size={35}/><p>Os dados sobre o público beneficiado serão disponibilizados pela CIPAA.</p><div className="collab-institutions">{institutionalAudience.map(i=><div key={i.id} className="collab-institution-name"><Heart size={17}/>{i.name}</div>)}</div></div>}
      </div>
     </section>
