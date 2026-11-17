@@ -1,7 +1,7 @@
 export type GiftRequest={id:string;institutionId:string;beneficiary:string;giftName:string;details:string;points:number;status:'available'|'reserved'|'delivered';donor?:string;group?:string;reservedAt?:string;deliveredAt?:string;reservedBy?:string;deliveredBy?:string};
 export type Need={id:string;name:string;unit:string;target:number;received:number;points:number;specification?:string;openingReceived?:number;mode?:'target'|'free'};
-export type Institution={id:string;name:string;description:string;needs:Need[];gifts?:GiftRequest[]};
-export type BeneficiaryGroup={label:string;girls:number;boys:number};
+export type Institution={id:string;name:string;description:string;beneficiaryKind?:'unspecified'|'children'|'elderly'|'people';beneficiaryCount?:number;needs:Need[];gifts?:GiftRequest[]};
+export type BeneficiaryGroup={label:string;girls:number;boys:number;institutionId?:string};
 export type Campaign={id:string;title:string;subtitle:string;description:string;start:string;end:string;status:'draft'|'published'|'closed';accent:string;banner:string;institutions:Institution[];beneficiaries?:BeneficiaryGroup[];rankingBy:'setor'|'andar'|'gerencia'|'equipe';rankingMode:'quantity'|'points';groups?:{id:string;name:string}[];};
 export type Donation={id:string;campaignId:string;institutionId:string;needId:string;quantity:number;donor:string;group:string;receivedBy:string;date:string;source?:'new'|'opening';};
 export type Store={campaigns:Campaign[];archivedCampaigns?:{id:string;title:string;archivedAt:string;archivedBy:string}[];donations:Donation[];settings:{pinEnabled:boolean}};
