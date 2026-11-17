@@ -587,3 +587,16 @@
 @media(max-width:1180px){.iw-workspace{grid-template-columns:215px minmax(0,1fr)}.iw-header{padding:19px}.iw-stats{margin:0 19px 15px;gap:6px}.iw-tabs{padding:0 19px}.iw-tab-content{padding:19px}.iw-stats>div{padding:10px 8px}}
 @media(max-width:780px){.iw-workspace{grid-template-columns:minmax(0,1fr)}.iw-sidebar{border-right:0;border-bottom:1px solid #e5edf2;padding:14px}.iw-institution-list{flex-direction:row;overflow-x:auto;scrollbar-width:thin;padding-bottom:3px}.iw-institution-item{min-width:170px;max-width:240px;flex-shrink:0}.iw-add-button{width:max-content}.iw-header{flex-wrap:wrap}.iw-header>.btn{margin-left:auto}.iw-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.iw-tabs>button{padding:12px}.iw-section-heading{flex-wrap:wrap}}
 @media(max-width:480px){.iw-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.iw-stats strong{font-size:19px}.iw-tab-content{padding:14px}.iw-header{padding:15px}.iw-header-title h3{font-size:16px}.iw-tabs{padding:0 12px}.iw-tabs>button{font-size:11px;gap:5px}.iw-stats{margin:0 13px 13px}.iw-section-heading>.btn{width:100%}}
+
+
+/* Lista compacta de presentes dentro da instituição */
+.iw-gift-filters{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:19px 0 12px}
+.iw-gift-filters .iw-search{flex:1;min-width:190px;max-width:390px}
+.iw-gift-filters>select{min-height:42px;padding:0 12px;border:1px solid #dfe8ee;border-radius:10px;color:#496d80;background:#fff;font-size:12px}
+.iw-gift-list{max-height:490px;overflow-y:auto;display:block;margin:0;border:1px solid #e4ebef;border-radius:12px;scrollbar-width:thin}
+.iw-gift-list>.gift-admin-row:first-child{border-top:0}
+.iw-gift-empty{font-size:12px;color:#8797a4;padding:25px;text-align:center}
+.iw-add-gift-panel{padding:18px;border:1px solid #cfe5e6;border-radius:12px;background:#f9fcfc;margin:15px 0}
+.iw-add-gift-panel .panel-header{margin-bottom:14px}
+.iw-add-gift-panel .panel-header h4{margin:0}
+@media(max-width:650px){.iw-gift-filters .iw-search,.iw-gift-filters>select{width:100%;max-width:none}.iw-add-gift-panel{padding:13px}.iw-gift-list{max-height:470px}}
