@@ -17,13 +17,13 @@ export async function GET(request:NextRequest){
   const inst=await db<Row[]>('institutions','select=*&campaign_id=eq.'+r.id+'&order=created_at.asc');
   const institutions:Campaign['institutions']=await Promise.all(inst.map(async i=>{
    const needs=await db<Row[]>('needs','select=*&institution_id=eq.'+i.id+'&import_removed_at=is.null&order=created_at.asc');
-   return {id:i.id,name:i.name,description:i.description,needs:needs.map(n=>({id:n.id,name:n.name,unit:n.unit,target:Number(n.target),received:Number(n.opening_received||0),mode:n.mode==='free'?'free':'target' as 'free'|'target',openingReceived:Number(n.opening_received||0),specification:n.specification||'',points:Number(n.points)}))};
+   return {id:i.id,name:i.name,description:i.description,beneficiaryKind:i.beneficiary_kind||'unspecified',beneficiaryCount:Number(i.beneficiary_count||0),needs:needs.map(n=>({id:n.id,name:n.name,unit:n.unit,target:Number(n.target),received:Number(n.opening_received||0),mode:n.mode==='free'?'free':'target' as 'free'|'target',openingReceived:Number(n.opening_received||0),specification:n.specification||'',points:Number(n.points)}))};
   }));
   const groups=admin&&wantAll?await db<Row[]>('campaign_groups','select=id,name&campaign_id=eq.'+r.id+'&order=name.asc'):[];
   const giftRows=await Promise.all(inst.map(async i=>await db<Row[]>('gift_requests','select=id,institution_id,beneficiary,gift_name,details,points,status'+(admin&&wantAll?',donor_name,group_name,reserved_at,delivered_at,reserved_by,delivered_by':'')+'&institution_id=eq.'+i.id+'&import_removed_at=is.null&order=created_at.asc')));
   institutions.forEach((i,index)=>{i.gifts=giftRows[index].map(g=>({id:g.id,institutionId:g.institution_id,beneficiary:g.beneficiary,giftName:g.gift_name,details:g.details||'',points:Number(g.points),status:g.status,donor:admin&&wantAll?g.donor_name||'':'',group:admin&&wantAll?g.group_name||'':'',reservedAt:g.reserved_at||'',deliveredAt:g.delivered_at||'',reservedBy:admin&&wantAll?g.reserved_by||'':'',deliveredBy:admin&&wantAll?g.delivered_by||'':''}))});
-  const beneficiaries=await db<Row[]>('beneficiary_groups','select=label,girls,boys&campaign_id=eq.'+r.id+'&order=label.asc');
-  return {groups:groups.map(g=>({id:g.id,name:g.name})),beneficiaries:beneficiaries.map(b=>({label:b.label,girls:Number(b.girls),boys:Number(b.boys)})),id:r.slug,title:r.title,subtitle:r.subtitle,description:r.description,start:r.starts_on||'',end:r.ends_on||'',status:r.status,accent:r.accent,banner:r.banner_url||'',institutions,rankingBy:r.ranking_by,rankingMode:r.ranking_mode} as Campaign;
+  const beneficiaries=await db<Row[]>('beneficiary_groups','select=label,girls,boys,institution_id&campaign_id=eq.'+r.id+'&order=label.asc');
+  return {groups:groups.map(g=>({id:g.id,name:g.name})),beneficiaries:beneficiaries.map(b=>({label:b.label,girls:Number(b.girls),boys:Number(b.boys),institutionId:b.institution_id||undefined})),id:r.slug,title:r.title,subtitle:r.subtitle,description:r.description,start:r.starts_on||'',end:r.ends_on||'',status:r.status,accent:r.accent,banner:r.banner_url||'',institutions,rankingBy:r.ranking_by,rankingMode:r.ranking_mode} as Campaign;
  }));
  const idToSlug=new Map(rows.map(r=>[r.id,r.slug]));
  const allowedIds=rows.map(r=>r.id);
