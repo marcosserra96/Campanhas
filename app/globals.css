@@ -855,3 +855,15 @@
 .points-csv-content{padding-top:15px}
 @media(max-width:950px){.points-editor-filters{grid-template-columns:1fr 1fr}.points-editor-search{grid-column:1/-1}}
 @media(max-width:600px){.points-editor-filters{grid-template-columns:1fr}.points-editor-search{grid-column:auto}.points-editor-audit{grid-template-columns:1fr}.points-editor-save{align-items:stretch;flex-direction:column}.points-editor-actions .btn{flex:1}.points-csv-details>summary{flex-wrap:wrap}.points-csv-details>summary span{width:100%;margin-left:29px}}
+
+
+/* Pontuações: agrupar itens iguais sem perder edição individual */
+.points-group-label{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.points-group-count{border-radius:7px;background:#e8f4f5;color:#24858c;font-size:10px;font-weight:800;padding:4px 7px;white-space:nowrap}
+.points-group-expand{display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;padding:5px 0;margin-top:3px;font-size:10px;color:#218799;font-weight:800;cursor:pointer}
+.points-group-expand:hover{text-decoration:underline}
+.points-group-mixed{font-size:10px;color:#b07847;font-weight:750;white-space:normal}
+.points-group-member td{background:#f9fbfc!important;border-bottom:1px solid #e8eff2!important}
+.points-group-member .points-editor-item{padding-left:23px}
+.points-group-individual{display:inline-block;font-size:10px;color:#8c9eaa;padding-left:16px}
+.points-group-member input{width:89px}
