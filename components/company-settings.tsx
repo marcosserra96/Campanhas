@@ -55,7 +55,7 @@ export default function CompanySettings({campaign,run,busy}:{campaign:Campaign;r
    <div className="panel-header"><div><h4>Adicionar vários membros de uma vez</h4><p className="muted">Copie uma coluna de nomes do Excel e cole abaixo. Um nome por linha, sem precisar cadastrar individualmente.</p></div></div>
    <div className="company-bulk-fields">
     <label className="donation-v2-field"><span>Empresa</span><select value={bulkCompany} onChange={e=>{setBulkCompany(e.target.value as Company);setBulkResult('')}} ><option value="">Selecione uma empresa</option>{companies.map(company=><option key={company} value={company}>{company}</option>)}</select></label>
-    <label className="donation-v2-field"><span>Colar lista de nomes</span><textarea rows={6} placeholder={'Maria da Silva\\nJoão Pereira\\nAna Souza'} value={bulkText} onChange={e=>{setBulkText(e.target.value);setBulkResult('')}}/></label>
+    <label className="donation-v2-field"><span>Colar lista de nomes</span><textarea rows={6} placeholder={'Maria da Silva\nJoão Pereira\nAna Souza'} value={bulkText} onChange={e=>{setBulkText(e.target.value);setBulkResult('')}}/></label>
    </div>
    {bulkText.trim()&&<div className="company-bulk-preview">
     <strong>Prévia da importação</strong>
