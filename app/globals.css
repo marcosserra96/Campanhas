@@ -704,3 +704,104 @@
 .collab-item-points{display:inline-block!important;color:#147f6e!important;font-weight:800!important;font-size:11px!important;background:#e9f8f3;border-radius:7px;padding:5px 8px;margin-top:6px}
 @media(max-width:800px){.points-workflow{grid-template-columns:1fr}}
 @media(max-width:560px){.points-import-fields{grid-template-columns:1fr}.points-workflow-step{padding:13px}.points-import-review{padding:12px}}
+
+
+/* CIPAA — registro de doações organizado por operação */
+.donation-workspace,.results-v2{max-width:1350px;margin:0 auto;min-width:0}
+.donation-workspace-title{margin-bottom:18px}
+.donation-workspace-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.donation-workspace-stats>div{display:flex;align-items:center;gap:13px;padding:17px 20px;background:#fff;border:1px solid #e4ecf1;border-radius:13px;color:#608191;min-width:0}
+.donation-workspace-stats>div svg{flex-shrink:0;color:#218c8c}
+.donation-workspace-stats>div span{font-size:12px;line-height:1.5}
+.donation-workspace-stats>div strong{font-size:22px;color:#22475a;display:inline-block;margin-right:5px}
+.donation-workspace-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:21px}
+.donation-workspace-tabs button{display:flex;align-items:center;gap:12px;min-width:0;padding:16px;border:1px solid #e1eaf0;border-radius:13px;background:#fff;text-align:left;color:#668193;transition:background .2s,border-color .2s,transform .2s}
+.donation-workspace-tabs button>svg{flex-shrink:0;color:#5f8494}
+.donation-workspace-tabs button:hover{background:#f7fbfc;border-color:#bddee0;transform:translateY(-1px)}
+.donation-workspace-tabs button.selected{background:#eaf7f7;border-color:#61b7c0;box-shadow:0 0 0 1px rgba(52,153,163,.1);color:#0e7180}
+.donation-workspace-tabs button.selected>svg{color:#148b97}
+.donation-workspace-tabs button>span{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.donation-workspace-tabs button strong{font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+.donation-workspace-tabs button small{font-size:10px;line-height:1.4;color:#8a9ca8}
+.donation-workspace-tabs button em{font-style:normal;font-weight:800;font-size:10px;border-radius:100px;background:#f0f4f6;padding:5px 7px;color:#486e81;flex-shrink:0}
+.donation-workspace-tabs button.selected em{background:#d0eae8;color:#087987}
+.donation-workspace>.panel{box-shadow:none}
+.donation-workspace .gift-operations,.donation-workspace .opening-panel{margin:0}
+.donation-workspace .donation-v2-list{margin-top:0}
+.donation-workspace .donation-v2-list .panel-header h3{font-size:18px}
+@media(max-width:1050px){.donation-workspace-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:670px){.donation-workspace-stats{grid-template-columns:1fr}.donation-workspace-stats>div{padding:12px 15px}.donation-workspace-stats>div strong{font-size:20px}}
+@media(max-width:450px){.donation-workspace-tabs{grid-template-columns:1fr 1fr;gap:7px}.donation-workspace-tabs button{padding:12px 10px;gap:8px;flex-wrap:wrap}.donation-workspace-tabs button strong{font-size:11px}.donation-workspace-tabs button em{margin-left:auto}}
+/* CIPAA — resultados: painel de leitura, sem formulários de configuração */
+.results-v2-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.results-eyebrow,.results-small-label{display:inline-flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.095em;font-weight:850;color:#238d93}
+.results-v2-heading h2{font-size:25px;margin:8px 0 6px;color:#193b51}
+.results-v2-heading p{margin:0;color:#7e93a3;font-size:12px;line-height:1.5}
+.results-filter{display:flex;flex-direction:column;gap:6px;min-width:240px;max-width:330px;flex:1}
+.results-filter span{font-size:11px;font-weight:700;color:#78909d}
+.results-filter select{border:1px solid #dbe6ed;border-radius:10px;background:#fff;padding:12px 13px;min-height:44px;color:#33566c;font-size:12px;width:100%}
+.results-v2-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:19px}
+.results-metric-card{min-width:0;padding:20px;border-radius:14px;background:#fff;border:1px solid #e3ebf0;display:flex;flex-direction:column;gap:9px}
+.results-metric-head{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#8597a5;font-size:11px}
+.results-metric-head svg{color:#2a8d87;flex-shrink:0}
+.results-metric-card>strong{color:#1d4054;font-size:30px;line-height:1.2;font-weight:800;letter-spacing:-.04em}
+.results-metric-card>strong span{font-size:16px;color:#8497a5;letter-spacing:0;font-weight:600}
+.results-metric-card>small{font-size:11px;color:#7a91a0;line-height:1.45}
+.results-meter{width:100%;height:7px;border-radius:50px;background:#e7f0f3;overflow:hidden;margin-top:3px}
+.results-meter>span{display:block;height:100%;border-radius:50px;background:linear-gradient(90deg,#1ca3a1,#60bf96);transition:width .4s ease}
+.results-metric-note{display:inline-block;font-size:10px;color:#718d9b;background:#f3f7f8;padding:6px 9px;border-radius:8px;margin-top:auto;align-self:flex-start}
+.results-v2-columns{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:17px}
+.results-panel{min-width:0;padding:23px!important}
+.results-panel-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:19px}
+.results-panel-heading h3{font-size:18px;margin:8px 0 5px;color:#26465b}
+.results-panel-heading p{margin:0;font-size:11px;line-height:1.55;color:#8698a5}
+.results-pill{font-size:10px;font-weight:800;background:#edf6f7;color:#237f86;border-radius:20px;padding:7px 11px;white-space:nowrap}
+.results-ranking-list{display:flex;flex-direction:column;gap:17px}
+.results-rank-top{display:flex;align-items:center;gap:10px;font-size:12px}
+.results-rank-pos{color:#71919b;font-weight:800;min-width:27px}
+.results-rank.leader .results-rank-pos{color:#b57627}
+.results-rank-top strong{flex:1;color:#2a4a5d;overflow-wrap:anywhere}
+.results-rank-top b{font-size:14px;color:#24546a;white-space:nowrap}
+.results-rank-top b small{font-size:10px;color:#96a7b1}
+.results-rank-meter{height:7px;margin:7px 0 0 37px;border-radius:20px;background:#eff3f5;overflow:hidden}
+.results-rank-meter span{display:block;background:#52a59f;height:100%;border-radius:20px}
+.results-rank.leader .results-rank-meter span{background:linear-gradient(90deg,#16a69a,#9fcb6f)}
+.results-show-all{display:flex;align-items:center;gap:6px;margin-top:18px;color:#138393;font-size:12px;font-weight:800;background:none;border:0;padding:5px 0}
+.results-institution-list{display:grid;gap:11px}
+.results-institution{background:#fbfcfd;border:1px solid #e7edf0;border-radius:12px;padding:14px}
+.results-institution-name{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.results-institution-name strong{font-size:12px;color:#27536a;overflow-wrap:anywhere}
+.results-institution-name>span{font-size:10px;color:#8499a7;white-space:nowrap}
+.results-institution-line{margin-top:11px}
+.results-institution-line>div:first-child{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#7790a0}
+.results-institution-line b{font-weight:800;color:#2a6470}
+.results-institution-line .results-meter{height:5px;margin-top:7px}
+.results-institution-line .gift-meter span{background:linear-gradient(90deg,#51b18d,#a3cc71)}
+.results-critical-list,.results-recent-list{display:flex;flex-direction:column}
+.results-critical,.results-recent{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid #edf1f3;min-width:0}
+.results-critical:last-child,.results-recent:last-child{border-bottom:0}
+.results-critical>div,.results-recent>div{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+.results-critical strong,.results-recent strong{font-size:12px;color:#304d61;overflow-wrap:anywhere}
+.results-critical small,.results-recent small{font-size:10px;color:#8a9ca9}
+.results-critical>span{white-space:nowrap;font-size:11px;color:#9c7850}
+.results-critical>span b{font-size:17px;color:#c17e3e}
+.results-recent-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:#eaf7f3;color:#218d7b;flex-shrink:0}
+.results-recent-side{display:flex!important;flex-direction:column;align-items:flex-end;flex:0 0 auto!important}
+.results-recent-side b{color:#277b83;font-size:15px}
+.results-free-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.results-free-item{border:1px solid #e4ebef;border-radius:11px;background:#fbfcfd;padding:16px;display:flex;flex-direction:column;gap:6px}
+.results-free-item>span{font-size:10px;color:#899cab}
+.results-free-item>strong{font-size:13px;color:#31596e}
+.results-free-item>div{display:flex;align-items:baseline;gap:7px;margin-top:5px}
+.results-free-item b{font-size:23px;color:#24857e}
+.results-free-item small{font-size:11px;color:#8295a1}
+.results-empty{text-align:center;display:flex;align-items:center;flex-direction:column;gap:9px;padding:29px 16px;color:#8aa0ad}
+.results-empty strong{font-size:13px;color:#416579}
+.results-empty p{font-size:11px;color:#899dac;max-width:280px;margin:0}
+.results-quiet{font-size:11px;color:#8a9da9;margin:7px 0}
+.results-footer-note{font-size:11px;color:#8699a8;display:flex;gap:8px;align-items:flex-start;line-height:1.55;padding:3px 5px 20px}
+.results-footer-note svg{flex-shrink:0}
+@media(max-width:1050px){.results-v2-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.results-v2-columns{grid-template-columns:1fr}.results-panel{padding:19px!important}}
+@media(max-width:540px){.results-v2-heading h2{font-size:21px}.results-filter{max-width:none;width:100%}.results-v2-metrics{gap:8px}.results-metric-card{padding:14px}.results-metric-card>strong{font-size:24px}.results-institution-name{flex-wrap:wrap}.results-metric-card>strong span{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.donation-workspace-tabs button,.results-meter>span{transition:none!important}}
