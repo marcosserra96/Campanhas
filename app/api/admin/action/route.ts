@@ -10,7 +10,7 @@ const txt=(x:unknown,max=200)=>typeof x==='string'?x.trim().slice(0,max):'';
 const finite=(x:unknown)=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&x<=1e9;
 const failure=(message:string,status=400)=>NextResponse.json({error:message},{status});
 async function findCampaign(slug:string){const data=await db<Row[]>('campaigns','select=id,slug,status,archived_at&slug=eq.'+encodeURIComponent(slug));return data[0]}
-async function needInfo(needId:string){const ns=await db<Row[]>('needs','select=id,institution_id& id=eq.'.replace(' ','')+needId);return ns[0]}
+async function needInfo(needId:string){const ns=await db<Row[]>('needs','select=id,institution_id&import_removed_at=is.null&id=eq.'+needId);return ns[0]}
 async function campaignOwnsInstitution(campaignId:string,institutionId:string){const inst=await db<Row[]>('institutions','select=id&campaign_id=eq.'+campaignId+'&id=eq.'+institutionId);return inst.length>0}
 async function validGroup(campaignId:string,name:string){const rows=await db<Row[]>('campaign_groups','select=name&campaign_id=eq.'+campaignId);return rows.some(r=>String(r.name).toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR'))}
 export async function POST(req:NextRequest){
@@ -181,7 +181,7 @@ export async function POST(req:NextRequest){
   if(!valid(iid)||!await campaignOwnsInstitution(String(camp.id),iid))return failure('Instituição inválida.');
   const items=body.items as Array<{name:string;quantity:number;donor:string;group:string;receivedBy:string}>;
   if(!Array.isArray(items)||!items.length||items.length>200)return failure('Importe entre 1 e 200 doações por vez.');
-  const needs=await db<Row[]>('needs','select=id,name&institution_id=eq.'+iid);
+  const needs=await db<Row[]>('needs','select=id,name&institution_id=eq.'+iid+'&import_removed_at=is.null');
   const groups=await db<Row[]>('campaign_groups','select=name&campaign_id=eq.'+camp.id);
   const mapped=[] as Array<Record<string,unknown>>;
   for(let index=0;index<items.length;index++){
