@@ -1,5 +1,5 @@
 'use client';
-import {useMemo,useState} from 'react';
+import {Fragment,useMemo,useState} from 'react';
 import {Campaign} from '@/lib/types';
 import {Search,Save,RotateCcw,SlidersHorizontal,ChevronDown,ChevronRight} from 'lucide-react';
 
@@ -66,7 +66,7 @@ export default function PointsEditor({campaign,run,busy}:{campaign:Campaign;run:
    const bad=g.members.some(x=>draft[itemKey(x)]!==undefined&&!validValue(draft[itemKey(x)]));
    const opened=expanded[g.key]===true;
    const showValue=uniform&&values[0]!==null?String(values[0]):'';
-   return <><tr key={g.key} className={bad?'points-editor-invalid':dirty?'points-editor-dirty':''}>
+   return <Fragment key={g.key}><tr> className={bad?'points-editor-invalid':dirty?'points-editor-dirty':''}>
     <td>{g.institution}</td><td><span className={'points-editor-type '+(g.type==='gift'?'gift':'')}>{g.type==='gift'?'Presente':'Material'}</span></td>
     <td className="points-editor-item"><div className="points-group-label"><strong>{g.name}</strong>{g.members.length>1&&<span className="points-group-count">{g.members.length} registros</span>}</div>{g.members.length>1?<button type="button" className="points-group-expand" aria-expanded={opened} onClick={()=>setExpanded(e=>({...e,[g.key]:!opened}))}>{opened?<ChevronDown size={14}/>:<ChevronRight size={14}/>} {opened?'Ocultar pessoas / registros':'Ver pessoas / registros'}</button>:g.members[0].details&&<small>{g.members[0].details}</small>}</td>
     <td className="points-editor-num">{oldUniform?fmt(g.members[0].points):<span className="points-group-mixed">Valores diferentes</span>}</td>
@@ -76,7 +76,7 @@ export default function PointsEditor({campaign,run,busy}:{campaign:Campaign;run:
     const k=itemKey(item),v=draft[k]===undefined?String(item.points):draft[k];
     return <tr key={k} className={'points-group-member '+(draft[k]!==undefined&&validValue(v)&&Number(v.replace(',','.'))!==item.points?'points-editor-dirty':'')}><td colSpan={2}><span className="points-group-individual">Registro individual</span></td><td className="points-editor-item"><strong>{item.details||item.name}</strong></td><td className="points-editor-num">{fmt(item.points)}</td><td className="points-editor-num"><input type="number" min="0" max="100000" step="any" aria-label={'Pontuação individual de '+(item.details||item.name)} value={v} onChange={e=>{setDraft(d=>({...d,[k]:e.target.value}));setNotification('')}}/></td></tr>
    })}
-   </>;
+   </Fragment>;
   })}
   {!filtered.length&&<tr><td colSpan={5} className="points-editor-empty">Nenhum item encontrado.</td></tr>}
   </tbody></table></div>
