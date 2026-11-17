@@ -600,3 +600,23 @@
 .iw-add-gift-panel .panel-header{margin-bottom:14px}
 .iw-add-gift-panel .panel-header h4{margin:0}
 @media(max-width:650px){.iw-gift-filters .iw-search,.iw-gift-filters>select{width:100%;max-width:none}.iw-add-gift-panel{padding:13px}.iw-gift-list{max-height:470px}}
+
+
+/* Campanhas: lixeira com exclusão reversível */
+.campaign-archive-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:15px 0 1px}
+.campaign-archive-toolbar .btn{font-size:12px}
+.campaign-trash-list{display:flex;flex-direction:column;gap:4px;margin:14px 0 18px;padding:18px}
+.campaign-trash-list>h3{margin:0 0 12px}
+.campaign-trash-item{display:flex;justify-content:space-between;align-items:center;gap:15px;min-width:0;padding:13px 5px;border-top:1px solid #e8edf1}
+.campaign-trash-item:first-of-type{border-top:0}
+.campaign-trash-item>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.campaign-trash-item strong{font-size:13px;color:#25465b;overflow-wrap:anywhere}
+.campaign-trash-item small{font-size:11px;color:#8296a3;line-height:1.5}
+.campaign-trash-item>.btn{white-space:nowrap;flex-shrink:0}
+.archive-warning,.archive-info{font-size:13px;line-height:1.65;border-radius:11px;padding:15px;margin:15px 0 20px}
+.archive-warning{color:#865b40;background:#fff6ef;border:1px solid #efd8c5}
+.archive-info{color:#2b7169;background:#edf9f5;border:1px solid #c4e7dd}
+.archive-empty-screen{min-height:100vh;background:#f4f7fa;padding:28px;display:flex;justify-content:center;align-items:flex-start}
+.archive-empty-screen>.panel{width:min(760px,100%);margin:55px auto;padding:30px}
+.archive-empty-screen .campaign-trash-list{margin-top:22px;padding:0}
+@media(max-width:600px){.campaign-archive-toolbar .btn{width:100%;justify-content:center}.campaign-trash-item{flex-wrap:wrap}.campaign-trash-item>.btn{margin-left:auto}.archive-empty-screen{padding:14px}.archive-empty-screen>.panel{padding:20px}}
