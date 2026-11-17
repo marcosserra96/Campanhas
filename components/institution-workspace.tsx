@@ -19,6 +19,8 @@ export default function InstitutionWorkspace({campaign:c,run,busy}:{campaign:Cam
  const [itemSearch,setItemSearch]=useState('');
  const [name,setName]=useState('');
  const [description,setDescription]=useState('');
+ const [beneficiaryKind,setBeneficiaryKind]=useState<'unspecified'|'children'|'elderly'|'people'>('unspecified');
+ const [beneficiaryCount,setBeneficiaryCount]=useState(0);
  const [editingNeed,setEditingNeed]=useState<Need|null>(null);
  const [newMaterial,setNewMaterial]=useState(false);
  const [materialName,setMaterialName]=useState('');
@@ -31,7 +33,7 @@ export default function InstitutionWorkspace({campaign:c,run,busy}:{campaign:Cam
  const current=c.institutions.find(i=>i.id===selectedId)||c.institutions[0];
  const selected=current?.id||'';
  const stats=useMemo(()=>({gifts:(current?.gifts||[]).length,available:(current?.gifts||[]).filter(g=>g.status==='available').length,reserved:(current?.gifts||[]).filter(g=>g.status==='reserved').length,delivered:(current?.gifts||[]).filter(g=>g.status==='delivered').length,materials:current?.needs.length||0}),[current]);
- useEffect(()=>{setName(current?.name||'');setDescription(current?.description||'');setEditingNeed(null);setNewMaterial(false);setNotice('')},[selected]);
+ useEffect(()=>{setName(current?.name||'');setDescription(current?.description||'');setBeneficiaryKind(current?.beneficiaryKind||'unspecified');setBeneficiaryCount(current?.beneficiaryCount||0);setEditingNeed(null);setNewMaterial(false);setNotice('')},[selected]);
  function choose(id:string){setSelectedId(id);setSection('gifts');setItemSearch('');}
  async function addInstitution(){
   if(!newInstitution.trim()||busy)return;
@@ -40,7 +42,7 @@ export default function InstitutionWorkspace({campaign:c,run,busy}:{campaign:Cam
  }
  async function saveInstitution(){
   if(!current||!name.trim()||busy)return;
-  if(await run('saveInstitution',{institution:{id:current.id,name:name.trim(),description:description.trim()}}))setNotice('Informações da instituição atualizadas.');
+  if(await run('saveInstitution',{institution:{id:current.id,name:name.trim(),description:description.trim(),beneficiaryKind,beneficiaryCount}}))setNotice('Informações da instituição atualizadas.');
  }
  async function deleteInstitution(){
   if(!current||busy||!window.confirm('Excluir '+current.name+'? A exclusão só é permitida quando não há doações ou registros vinculados.'))return;
@@ -87,7 +89,7 @@ export default function InstitutionWorkspace({campaign:c,run,busy}:{campaign:Cam
          <label className="iw-search iw-item-search"><Search size={16}/><input aria-label="Buscar materiais" placeholder="Buscar material..." value={itemSearch} onChange={e=>setItemSearch(e.target.value)}/></label>
          {filteredMaterials.length?<div className="iw-table-scroll"><table className="iw-table"><thead><tr><th>Material</th><th>Modalidade</th><th>Recebido</th><th>Pontos</th><th>Ações</th></tr></thead><tbody>{filteredMaterials.map(n=><tr key={n.id}><td><strong>{n.name}</strong>{n.specification&&<small>{n.specification}</small>}</td><td>{n.mode==='free'?'Livre (sem meta)':n.target.toLocaleString('pt-BR')+' '+n.unit}</td><td>{n.received.toLocaleString('pt-BR')}</td><td>{n.points.toLocaleString('pt-BR')}</td><td><div className="iw-actions"><button className="icon-btn" aria-label={'Editar '+n.name} title="Editar" onClick={()=>openMaterial(n)}><Pencil size={16}/></button><button className="icon-btn danger" aria-label={'Excluir '+n.name} title="Excluir" onClick={()=>void deleteMaterial(n)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table></div>:<div className="iw-empty"><PackageCheck size={29}/><h4>{current.needs.length?'Nenhum item encontrado':'Nenhum material cadastrado'}</h4><p>Adicione materiais com meta ou arrecadações livres para esta instituição.</p></div>}
         </section>}
-       {section==='details'&&<section className="iw-items-section"><div className="iw-section-heading"><div><h3>Dados da instituição</h3><p className="muted">Essas informações ajudam os colaboradores a conhecer a instituição atendida.</p></div></div><div className="iw-details-form"><label className="donation-v2-field"><span>Nome da instituição</span><input maxLength={160} value={name} onChange={e=>setName(e.target.value)}/></label><label className="donation-v2-field"><span>Descrição e orientações</span><textarea rows={5} maxLength={2000} value={description} onChange={e=>setDescription(e.target.value)}/></label><div className="iw-details-actions"><button className="btn primary" disabled={busy||!name.trim()} onClick={()=>void saveInstitution()}><Save size={17}/> Salvar dados</button><button className="btn outline" disabled={busy} onClick={()=>void deleteInstitution()}><Trash2 size={16}/> Excluir instituição</button></div><p className="hint">A exclusão só deve ser usada para cadastros sem registros de doação ou presentes vinculados.</p></div></section>}
+       {section==='details'&&<section className="iw-items-section"><div className="iw-section-heading"><div><h3>Dados da instituição</h3><p className="muted">Essas informações ajudam os colaboradores a conhecer a instituição atendida.</p></div></div><div className="iw-details-form"><label className="donation-v2-field"><span>Nome da instituição</span><input maxLength={160} value={name} onChange={e=>setName(e.target.value)}/></label><label className="donation-v2-field"><span>Descrição e orientações</span><textarea rows={5} maxLength={2000} value={description} onChange={e=>setDescription(e.target.value)}/></label><label className="donation-v2-field"><span>Tipo de público beneficiado</span><select value={beneficiaryKind} onChange={e=>setBeneficiaryKind(e.target.value as typeof beneficiaryKind)}><option value="unspecified">Ainda não informado</option><option value="children">Crianças</option><option value="elderly">Idosos</option><option value="people">Pessoas</option></select></label><label className="donation-v2-field"><span>Quantidade de beneficiários</span><input type="number" min="0" step="1" value={beneficiaryCount} onChange={e=>setBeneficiaryCount(Number(e.target.value))}/></label><p className="hint">Esta informação aparece na seção "Quem vamos ajudar" do portal público. Informe pessoas atendidas, não a quantidade de materiais ou presentes.</p><div className="iw-details-actions"><button className="btn primary" disabled={busy||!name.trim()||!Number.isInteger(beneficiaryCount)||beneficiaryCount<0} onClick={()=>void saveInstitution()}><Save size={17}/> Salvar dados</button><button className="btn outline" disabled={busy} onClick={()=>void deleteInstitution()}><Trash2 size={16}/> Excluir instituição</button></div><p className="hint">A exclusão só deve ser usada para cadastros sem registros de doação ou presentes vinculados.</p></div></section>}
       </div>
      </>:<div className="iw-empty iw-no-institution"><Building2 size={39}/><h3>Cadastre uma instituição para começar</h3><p>Depois você poderá adicionar presentes, materiais, informações e importar dados.</p><button className="btn primary" onClick={()=>setAddingInstitution(true)}><Plus size={17}/> Nova instituição</button></div>}
    </div>
