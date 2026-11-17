@@ -620,3 +620,20 @@
 .archive-empty-screen>.panel{width:min(760px,100%);margin:55px auto;padding:30px}
 .archive-empty-screen .campaign-trash-list{margin-top:22px;padding:0}
 @media(max-width:600px){.campaign-archive-toolbar .btn{width:100%;justify-content:center}.campaign-trash-item{flex-wrap:wrap}.campaign-trash-item>.btn{margin-left:auto}.archive-empty-screen{padding:14px}.archive-empty-screen>.panel{padding:20px}}
+
+
+/* Histórico de importações e desfazer seguro */
+.import-undo-history{border-top:1px solid #e4ecf0;margin-top:25px;padding-top:22px}
+.import-undo-history .panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.import-undo-history .panel-header h3{display:flex;align-items:center;gap:8px;font-size:16px;margin:0 0 5px;color:#2b4c60}
+.import-undo-history .panel-header h3 svg{color:#258da1}
+.import-undo-history .panel-header p{margin:0}
+.import-undo-row{display:flex;align-items:center;justify-content:space-between;gap:15px;border:1px solid #e5ebef;border-radius:12px;padding:15px;margin-bottom:9px;background:#fbfcfd}
+.import-undo-row>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.import-undo-row strong{font-size:13px;color:#2b4f66;overflow-wrap:anywhere}
+.import-undo-row small{font-size:11px;color:#8294a2}
+.import-undo-row .btn{flex-shrink:0;white-space:nowrap}
+.import-undone-status{display:flex;align-items:center;gap:6px;background:#eaf8f0;color:#297b58;border-radius:9px;padding:8px 11px;font-weight:800;font-size:11px;white-space:nowrap}
+.import-undo-warning{background:#fff5ec;border:1px solid #f0d9c2;color:#8b5a32;padding:16px;border-radius:11px;margin:15px 0;font-size:13px;line-height:1.65}
+.import-undo-warning strong{color:#b35a23}
+@media(max-width:650px){.import-undo-history .panel-header{flex-wrap:wrap}.import-undo-row{flex-wrap:wrap}.import-undo-row .btn{width:100%;justify-content:center}}
