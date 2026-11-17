@@ -9,7 +9,7 @@ const valid=(x:unknown)=>typeof x==='string'&&uuid.test(x);
 const txt=(x:unknown,max=200)=>typeof x==='string'?x.trim().slice(0,max):'';
 const finite=(x:unknown)=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&x<=1e9;
 const failure=(message:string,status=400)=>NextResponse.json({error:message},{status});
-async function findCampaign(slug:string){const data=await db<Row[]>('campaigns','select=id,slug,status&slug=eq.'+encodeURIComponent(slug));return data[0]}
+async function findCampaign(slug:string){const data=await db<Row[]>('campaigns','select=id,slug,status,archived_at&slug=eq.'+encodeURIComponent(slug));return data[0]}
 async function needInfo(needId:string){const ns=await db<Row[]>('needs','select=id,institution_id& id=eq.'.replace(' ','')+needId);return ns[0]}
 async function campaignOwnsInstitution(campaignId:string,institutionId:string){const inst=await db<Row[]>('institutions','select=id&campaign_id=eq.'+campaignId+'&id=eq.'+institutionId);return inst.length>0}
 async function validGroup(campaignId:string,name:string){const rows=await db<Row[]>('campaign_groups','select=name&campaign_id=eq.'+campaignId);return rows.some(r=>String(r.name).toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR'))}
@@ -20,6 +20,22 @@ export async function POST(req:NextRequest){
  try{
  const body=await req.json() as Record<string,any>;
  const op=body.op as string;
+ if(op==='archiveCampaign'||op==='restoreCampaign'){
+  const slug=txt(body.campaignId,100),actor=txt(body.actor,160);
+  if(!/^[a-z0-9-]{3,100}$/.test(slug)||actor.length<2)return failure('Informe a campanha e o nome de quem está realizando a ação.');
+  const entry=await findCampaign(slug);
+  if(!entry)return failure('Campanha não encontrada.',404);
+  if(op==='archiveCampaign'){
+   if(entry.archived_at)return failure('Campanha já está na lixeira.');
+   const changed=await db<Row[]>('campaigns','id=eq.'+entry.id+'&archived_at=is.null','PATCH',{archived_at:new Date().toISOString(),archived_by:actor,restored_by:null});
+   if(!changed.length)return failure('A campanha já foi alterada. Atualize a página.',409);
+  }else{
+   if(!entry.archived_at)return failure('Esta campanha já está ativa.');
+   const changed=await db<Row[]>('campaigns','id=eq.'+entry.id+'&archived_at=not.is.null','PATCH',{archived_at:null,restored_by:actor});
+   if(!changed.length)return failure('A campanha já foi restaurada. Atualize a página.',409);
+  }
+  return NextResponse.json({ok:true});
+ }
  if(op==='saveCampaign'){
  const c=body.campaign as Campaign;
  if(!c||!txt(c.title,160)||!txt(c.id,100)||!/^[a-z0-9-]{3,100}$/.test(c.id))return failure('Dados da campanha inválidos.');
@@ -28,6 +44,7 @@ export async function POST(req:NextRequest){
  if(c.end&& !/^\d{4}-\d{2}-\d{2}$/.test(c.end))return failure('Data final inválida.');
  if(c.end&&c.start&&c.end<c.start)return failure('Data final anterior ao início.');
  const existing=await findCampaign(c.id);
+ if(existing?.archived_at)return failure('Esta campanha está na lixeira. Restaure-a antes de editar.',409);
  const data={slug:c.id,title:txt(c.title,160),subtitle:txt(c.subtitle,200),description:txt(c.description,4000),starts_on:c.start||null,ends_on:c.end||null,status:c.status,accent:/^#[0-9a-f]{6}$/i.test(c.accent)?c.accent:'#66b900',banner_url:c.banner&&/^https:\/\//.test(c.banner)?txt(c.banner,1200):null,ranking_by:c.rankingBy,ranking_mode:c.rankingMode,updated_at:new Date().toISOString()};
  if(existing)await db('campaigns','id=eq.'+existing.id,'PATCH',data);
  else await db('campaigns','','POST',data);
@@ -35,6 +52,7 @@ export async function POST(req:NextRequest){
  }
  const slug=txt(body.campaignId,100);const camp=await findCampaign(slug);
  if(!camp)return failure('Campanha não encontrada.',404);
+ if(camp.archived_at)return failure('Esta campanha está na lixeira. Restaure-a antes de alterar.',409);
  if(op==='addCampaignGroup'){
   const name=txt(body.name,120);
   if(!name)return failure('Informe o nome do setor ou grupo.');
