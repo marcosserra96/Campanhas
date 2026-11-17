@@ -3,7 +3,7 @@ import {useEffect,useMemo,useState} from 'react';
 import {Campaign,Donation} from '@/lib/types';
 import OpeningBalanceManager from '@/components/opening-balance-manager';
 import GiftOperations from '@/components/gift-operations';
-import {CheckCircle2,ClipboardCheck,History,Pencil,RotateCcw,Search,ShieldCheck,Trash2,X,PackageCheck,Info,Save} from 'lucide-react';
+import {CheckCircle2,ClipboardCheck,History,Pencil,RotateCcw,Search,ShieldCheck,Trash2,X,PackageCheck,Info,Save,Gift,Archive} from 'lucide-react';
 
 type Action=(op:string,params:Record<string,unknown>)=>Promise<boolean>;
 type Audit={id:string;source?:'new'|'opening'|'gift';donation_id:string;event_type:string;changed_at:string;changed_by:string;reason:string;before_data:Record<string,unknown>|null;after_data:Record<string,unknown>|null};
