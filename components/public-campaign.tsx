@@ -2,6 +2,7 @@
 import {useState} from 'react';
 import Link from 'next/link';
 import {useStore} from '@/components/store-provider';
+import PublicGiftAdoption from '@/components/public-gift-adoption';
 import {total,progress,ranking,Need} from '@/lib/types';
 import {Gift,HeartHandshake,Trophy,CalendarDays,Heart,ArrowDown,CheckCircle2,PackageCheck,Search,RefreshCw,MapPin,ChevronDown,ChevronUp,Users,Check,ArrowUpRight,School,Info} from 'lucide-react';
 
@@ -59,7 +60,7 @@ export default function PublicCampaign({id}:{id:string}){
     </div>
    </section>
    <section className="collab-section collab-materials" id="materiais">
-    <div className="collab-section-title"><div><span className="collab-eyebrow">SUA AJUDA FAZ A DIFERENÇA</span><h2>Escolha uma instituição para ajudar</h2><p>Veja os presentes disponíveis e outras formas de contribuir. Para adotar, procure um membro da CIPAA.</p></div><div className="collab-left-count"><HeartHandshake size={18}/>{c.institutions.length} {c.institutions.length===1?'instituição':'instituições'}</div></div>
+    <div className="collab-section-title"><div><span className="collab-eyebrow">SUA AJUDA FAZ A DIFERENÇA</span><h2>Escolha uma instituição para ajudar</h2><p>Veja os presentes disponíveis e outras formas de contribuir. Você pode solicitar a adoção pelo próprio portal.</p></div><div className="collab-left-count"><HeartHandshake size={18}/>{c.institutions.length} {c.institutions.length===1?'instituição':'instituições'}</div></div>
     <div className="collab-institution-accordion">
      {c.institutions.map(inst=>{
        const targeted=inst.needs.filter(n=>n.mode!=='free');
@@ -88,9 +89,9 @@ export default function PublicCampaign({id}:{id:string}){
         </button>
         {isOpen&&<div className="collab-institution-details" id={'institution-details-'+inst.id}>
          {gifts.length>0&&<section className="gift-public-section">
-          <div className="gift-public-heading"><div><h3><Gift size={21}/> Presentes para adoção</h3><p>Cada pessoa escolheu um presente. Consulte os disponíveis e procure a CIPAA para reservar o que deseja adotar.</p></div><span>{gifts.filter(g=>g.status==='available').length} disponíveis</span></div>
-          <div className="gift-public-instructions"><Info size={18}/><span><strong>Como participar:</strong> escolha um presente disponível e informe sua escolha a um membro da CIPAA. A comissão registra sua reserva e confirma a entrega quando receber o presente.</span></div>
-          <div className="gift-public-grid">{gifts.map(g=><article className={'gift-public-card '+g.status} key={g.id}><div className="gift-public-card-top"><span className="gift-public-icon"><Gift size={20}/></span><span className="gift-public-status">{g.status==='available'?'Disponível':g.status==='reserved'?'Reservado':'Entregue'}</span></div><strong>{g.beneficiary}</strong><span>{g.giftName}</span>{g.details&&<small>{g.details}</small>}{c.showItemPoints&&<small className="collab-item-points">{number(g.points)} {g.points===1?'ponto':'pontos'} ao entregar</small>}</article>)}</div>
+          <div className="gift-public-heading"><div><h3><Gift size={21}/> Presentes para adoção</h3><p>Cada beneficiário escolheu um presente. Você pode reservar os disponíveis pelo portal e entregá-los à CIPAA da sua empresa.</p></div><span>{gifts.filter(g=>g.status==='available').length} disponíveis</span></div>
+          <div className="gift-public-instructions"><Info size={18}/><span><strong>Como participar:</strong> escolha um presente, informe sua empresa e nome completo, e entregue-o a um membro da CIPAA até o prazo indicado. Se não puder ajudar, avise a CIPAA para liberar sua reserva.</span></div>
+          <PublicGiftAdoption campaign={c} gifts={gifts}/>
          </section>}
          {inst.needs.length>0&&<section className="gift-other-materials"><div className="collab-institution-details-head"><div><h3>Outras formas de ajudar</h3><p>Para fazer uma doação, entregue o material a um membro da CIPAA.</p></div><div className="collab-institution-filters"><div className="collab-tabs" role="group" aria-label="Filtrar materiais"><button className={filter==='pending'?'selected':''} onClick={()=>setFilter('pending')}>Pendentes</button><button className={filter==='all'?'selected':''} onClick={()=>setFilter('all')}>Todos</button><button className={filter==='done'?'selected':''} onClick={()=>setFilter('done')}>Concluídos</button></div><label className="collab-search"><Search size={17}/><input aria-label="Buscar materiais desta instituição" placeholder="Buscar item..." value={search} onChange={e=>setSearch(e.target.value)}/></label></div></div>
          <div className="collab-need-list">{visible.map(n=>{const left=Math.max(0,n.target-n.received),p=percentage(n.received,n.target),done=n.mode!=='free'&&isDone(n);return <div className={'collab-need '+(done?'completed':'')} key={n.id}>
@@ -98,7 +99,7 @@ export default function PublicCampaign({id}:{id:string}){
           <div className="collab-need-body"><h3>{n.name}</h3>{n.specification&&<p>{n.specification}</p>}{c.showItemPoints&&<p className="collab-item-points">{number(n.points)} {n.points===1?'ponto':'pontos'} por {n.unit}</p>}{n.mode==='free'?<p className="gift-free-label">Arrecadação livre · sem meta</p>:<div className="collab-need-track"><div className="collab-meter slim"><span style={{width:p+'%'}}/></div><span>{number(n.received)} de {number(n.target)} recebidos</span></div>}</div>
           <div className={'collab-need-remaining '+(done?'complete':'')}><strong>{n.mode==='free'?number(n.received):done?<Check size={22}/>:number(left)}</strong><span>{n.mode==='free'?n.unit+' recebidos':done?'Meta atingida':(n.unit==='unidade(s)'?'unidades faltando':n.unit+' faltando')}</span></div>
          </div>})}{!visible.length&&<div className="collab-empty"><CheckCircle2 size={34}/><h3>Nenhum material encontrado.</h3><p>Experimente outro filtro.</p></div>}</div></section>}
-         <div className="collab-list-bottom"><Info size={16}/><span>Todas as reservas e os registros de doações são feitos exclusivamente pela CIPAA.</span></div>
+         <div className="collab-list-bottom"><Info size={16}/><span>A reserva de presentes pode ser feita pelo colaborador. O recebimento, a pontuação e o cancelamento da reserva são controlados pela CIPAA.</span></div>
         </div>}
        </article>;
      })}
