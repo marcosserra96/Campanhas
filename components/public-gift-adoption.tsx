@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
-import {Campaign,GiftRequest,COMPANIES,Company} from '@/lib/types';
+import {Campaign,GiftRequest,Company} from '@/lib/types';
 import {useStore} from '@/components/store-provider';
 import {Gift,CalendarDays,Users,CheckCircle2,X,Info,ShieldCheck} from 'lucide-react';
 
@@ -44,6 +44,7 @@ export default function PublicGiftAdoption({campaign,gifts}:{campaign:Campaign;g
  const today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
  const deadlineOpen=Boolean(deadline&&deadline>=today);
  const contacts=(campaign.cipaaContacts||[]).filter(c=>c.company===company);
+ const companies=(campaign.companies||[]).filter(c=>c.active);
  function open(gift:GiftRequest){openerRef.current=document.activeElement instanceof HTMLElement?document.activeElement:null;setSelected(gift);setCompany('');setFullName('');setAgreed(false);setError('');setSuccess(false)}
  function close(){setSelected(null);setSuccess(false);setError('')}
  async function reserve(){
@@ -70,7 +71,7 @@ export default function PublicGiftAdoption({campaign,gifts}:{campaign:Campaign;g
   <div className="gift-adopt-selected"><Gift size={22}/><div><strong>{selected.beneficiary}</strong><span>{selected.giftName}{selected.details?' · '+selected.details:''}</span></div></div>
   {success?<div className="gift-adopt-success"><CheckCircle2 size={34}/><h4>Obrigado por participar!</h4><p>Sua adoção está reservada. Agora é só entregar o presente até <strong>{fullDate(deadline)}</strong>.</p><div className="gift-adopt-contact-box"><strong>Procure os membros da CIPAA — {company}:</strong>{contacts.map(c=><span key={c.id}>{c.name}</span>)}</div><p><strong>Não poderá ajudar?</strong> Avise um desses membros da CIPAA o quanto antes. Somente a comissão poderá cancelar sua reserva e liberar o presente para outra pessoa.</p><button type="button" className="gift-adopt-confirm" onClick={close}>Concluir</button></div>:
   <>
-   <div className="gift-adopt-fields"><label><span>Empresa em que trabalha *</span><select value={company} onChange={e=>{setCompany(e.target.value as Company|'');setAgreed(false)}}><option value="">Selecione sua empresa</option>{COMPANIES.map(c=><option value={c} key={c}>{c}</option>)}</select></label><label><span>Seu nome completo *</span><input autoComplete="name" maxLength={160} placeholder="Nome e sobrenome" value={fullName} onChange={e=>setFullName(e.target.value)}/></label></div>
+   <div className="gift-adopt-fields"><label><span>Empresa em que trabalha *</span><select value={company} onChange={e=>{setCompany(e.target.value as Company|'');setAgreed(false)}}><option value="">Selecione sua empresa</option>{companies.map(c=><option value={c.name} key={c.id}>{c.name}</option>)}</select></label><label><span>Seu nome completo *</span><input autoComplete="name" maxLength={160} placeholder="Nome e sobrenome" value={fullName} onChange={e=>setFullName(e.target.value)}/></label></div>
    <div className="gift-adopt-deadline"><CalendarDays size={18}/><div><strong>Entrega até {fullDate(deadline)}</strong><small>A CIPAA confirmará o recebimento e os pontos após a entrega.</small></div></div>
    {company&&<div className="gift-adopt-contact-box"><div className="gift-adopt-contact-heading"><Users size={17}/><strong>Quem procurar na CIPAA — {company}</strong></div>{contacts.length?contacts.map(c=><span key={c.id}>{c.name}</span>):<p>A CIPAA ainda não informou os responsáveis dessa empresa. Selecione outra empresa apenas se ela for a sua ou aguarde a atualização.</p>}</div>}
    <label className="gift-adopt-agreement"><input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)}/><span>Comprometo-me a entregar o presente até <strong>{fullDate(deadline)}</strong>. Se não puder ajudar, avisarei um membro da CIPAA para cancelar minha reserva e liberar o presente.</span></label>
