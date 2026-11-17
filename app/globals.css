@@ -1028,3 +1028,20 @@
 @media(max-width:1160px){.gift-receiving-item{align-items:stretch;flex-direction:column}.gift-receiving-side{flex-direction:row;align-items:center;justify-content:space-between;min-width:0;gap:10px}.gift-receiving-actions{width:auto;flex-direction:row}}
 @media(max-width:700px){.gift-receiving{padding:16px!important}.gift-receiving-head{flex-wrap:wrap}.gift-receiving-head>.btn{width:100%;justify-content:center}.gift-receiving-stats{grid-template-columns:1fr 1fr}.gift-receiving-stats>div{padding:11px}.gift-receiving-stats strong{font-size:18px}.gift-receiving-toolbar{align-items:stretch;flex-direction:column}.gift-receiving-search{max-width:none;width:100%}.gift-receiving-main{grid-template-columns:1fr;gap:14px}.gift-receiving-item{padding:14px}.gift-receiving-side{flex-direction:column;align-items:stretch}.gift-receiving-actions{width:100%;flex-direction:column}.gift-receiving-confirm-details{grid-template-columns:1fr 1fr}}
 @media(max-width:450px){.gift-receiving-stats{grid-template-columns:1fr}.gift-receiving-status-tabs button{font-size:10px;padding:9px 8px}.gift-receiving-date{white-space:normal}.gift-receiving-confirm-details{grid-template-columns:1fr}}
+
+
+/* Empresas globais: criação e alteração de nomes */
+.company-register{margin:15px 0 20px;padding:19px;border:1px solid #d6e7eb;background:#f8fcfc;border-radius:13px}
+.company-register>div>strong{font-size:14px;color:#286477}
+.company-register>div>p{font-size:11px;line-height:1.55;margin:6px 0 16px}
+.company-register-controls{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) auto;align-items:end;gap:11px}
+.company-register-controls .donation-v2-field{min-width:0}
+.company-register-controls .btn{min-height:42px;white-space:nowrap}
+.company-settings-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.company-settings-title>h4{margin:0!important;overflow-wrap:anywhere}
+.company-settings-title>.icon-btn{flex-shrink:0}
+.company-rename{display:flex;flex-direction:column;gap:8px;padding:12px;margin:10px 0;background:#edf8f8;border:1px solid #d0e6e8;border-radius:10px}
+.company-rename>input{min-width:0;min-height:42px;border:1px solid #cbdce2;padding:9px;border-radius:8px}
+.company-rename>.btn{justify-content:center}
+@media(max-width:930px){.company-register-controls{grid-template-columns:1fr 1fr}.company-register-controls .btn{grid-column:1/-1;justify-content:center}}
+@media(max-width:580px){.company-register{padding:14px}.company-register-controls{grid-template-columns:1fr}.company-register-controls .btn{grid-column:auto}}
