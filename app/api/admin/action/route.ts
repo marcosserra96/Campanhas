@@ -45,7 +45,7 @@ export async function POST(req:NextRequest){
  if(c.end&&c.start&&c.end<c.start)return failure('Data final anterior ao início.');
  const existing=await findCampaign(c.id);
  if(existing?.archived_at)return failure('Esta campanha está na lixeira. Restaure-a antes de editar.',409);
- const data={slug:c.id,title:txt(c.title,160),subtitle:txt(c.subtitle,200),description:txt(c.description,4000),starts_on:c.start||null,ends_on:c.end||null,status:c.status,accent:/^#[0-9a-f]{6}$/i.test(c.accent)?c.accent:'#66b900',banner_url:c.banner&&/^https:\/\//.test(c.banner)?txt(c.banner,1200):null,ranking_by:c.rankingBy,ranking_mode:c.rankingMode,updated_at:new Date().toISOString()};
+ const data={slug:c.id,title:txt(c.title,160),subtitle:txt(c.subtitle,200),description:txt(c.description,4000),starts_on:c.start||null,ends_on:c.end||null,status:c.status,accent:/^#[0-9a-f]{6}$/i.test(c.accent)?c.accent:'#66b900',banner_url:c.banner&&/^https:\/\//.test(c.banner)?txt(c.banner,1200):null,ranking_by:c.rankingBy,ranking_mode:c.rankingMode,show_item_points:c.showItemPoints===true,updated_at:new Date().toISOString()};
  if(existing)await db('campaigns','id=eq.'+existing.id,'PATCH',data);
  else await db('campaigns','','POST',data);
  return NextResponse.json({ok:true});
@@ -53,6 +53,21 @@ export async function POST(req:NextRequest){
  const slug=txt(body.campaignId,100);const camp=await findCampaign(slug);
  if(!camp)return failure('Campanha não encontrada.',404);
  if(camp.archived_at)return failure('Esta campanha está na lixeira. Restaure-a antes de alterar.',409);
+ if(op==='updateItemPoints'){
+  const actor=txt(body.actor,160),reason=txt(body.reason,500);
+  if(actor.length<2||reason.length<5)return failure('Informe o responsável e o motivo da atualização.');
+  const updates=body.items as Array<{id:string;type:string;points:number}>;
+  if(!Array.isArray(updates)||!updates.length||updates.length>5000||updates.some(x=>!valid(x?.id)||!['need','gift'].includes(x.type)||!finite(x.points)||x.points>100000))return failure('Existem códigos ou pontuações inválidos no arquivo.');
+  try{
+   const changed=await rpc<number>('update_campaign_item_points',{p_campaign:camp.id,p_items:updates,p_actor:actor,p_reason:reason});
+   return NextResponse.json({ok:true,changed});
+  }catch(e){
+   const raw=e instanceof Error?e.message:'Erro de atualização';
+   const found=raw.match(/"message":"([^"]+)"/);
+   return failure(found?.[1]||'Não foi possível importar as pontuações. Verifique os códigos e valores.',409);
+  }
+ }
+
  if(op==='undoImportBatch'){
   const batchId=body.batchId as string,actor=txt(body.actor,160),reason=txt(body.reason,500);
   if(!valid(batchId)||actor.length<2||reason.length<5)return failure('Informe o responsável e o motivo da correção (mínimo 5 caracteres).');
