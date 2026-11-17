@@ -637,3 +637,19 @@
 .import-undo-warning{background:#fff5ec;border:1px solid #f0d9c2;color:#8b5a32;padding:16px;border-radius:11px;margin:15px 0;font-size:13px;line-height:1.65}
 .import-undo-warning strong{color:#b35a23}
 @media(max-width:650px){.import-undo-history .panel-header{flex-wrap:wrap}.import-undo-row{flex-wrap:wrap}.import-undo-row .btn{width:100%;justify-content:center}}
+
+
+/* Público beneficiado — total consolidado com detalhamento por instituição */
+.collab-audience-summary{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0}
+.collab-audience-summary>span{display:flex;align-items:baseline;gap:6px;border:1px solid #e0ede8;border-radius:9px;padding:10px 13px;background:#f3faf7;color:#477665;font-size:12px}
+.collab-audience-summary strong{font-size:18px;color:#23845f}
+.collab-beneficiary-institution-list{display:grid;gap:10px;margin-top:15px}
+.collab-beneficiary-institution{padding:15px 16px;background:#f9fbfc;border:1px solid #e4ebef;border-radius:12px}
+.collab-beneficiary-institution-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12px;color:#457185}
+.collab-beneficiary-institution-head>svg{color:#2d9573;flex-shrink:0}
+.collab-beneficiary-institution-head>strong{color:#25485c;font-size:13px;flex:1;min-width:120px}
+.collab-beneficiary-institution-head>span{color:#587a8a;font-size:11px;white-space:nowrap}
+.collab-beneficiary-institution-head>span b{font-size:17px;color:#167e77;margin-right:4px}
+.collab-beneficiary-institution .collab-beneficiary-pills{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0 0}
+.collab-beneficiary-institution .collab-beneficiary-pills span{font-size:11px}
+@media(max-width:530px){.collab-beneficiary-institution{padding:13px}.collab-beneficiary-institution-head>span{width:100%;padding-left:28px}}
