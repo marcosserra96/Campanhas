@@ -6,5 +6,5 @@ export async function POST(request:NextRequest){
  if(origin&&origin!==request.nextUrl.origin)return NextResponse.json({error:'Origem não autorizada.'},{status:403});
  if(!await isAdmin())return NextResponse.json({error:'Apenas a CIPAA pode gerar convites.'},{status:401});
  const token=createInviteToken();
- return NextResponse.json({url:request.nextUrl.origin+'/cipaa#invite='+encodeURIComponent(token),expiresInDays:30},{headers:{'Cache-Control':'no-store'}});
+ return NextResponse.json({url:request.nextUrl.origin+'/cipaa#invite='+encodeURIComponent(token)},{headers:{'Cache-Control':'no-store'}});
 }
