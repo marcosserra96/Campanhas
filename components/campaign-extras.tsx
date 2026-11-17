@@ -1,7 +1,7 @@
 'use client';
 import {useMemo,useState} from 'react';
 import {Campaign,GiftRequest} from '@/lib/types';
-import {Gift,Plus,CheckCircle2,Undo2,Pencil,Upload,Download,Info,Save,ShieldCheck} from 'lucide-react';
+import {Gift,Plus,CheckCircle2,Undo2,Pencil,Upload,Download,Info,Save,ShieldCheck,X,Search} from 'lucide-react';
 type Run=(op:string,params:Record<string,unknown>)=>Promise<boolean>;
 export default function CampaignExtras({campaign:c,run,busy,institutionId,section}:{campaign:Campaign;run:Run;busy:boolean;institutionId?:string;section?:'gifts'|'import'}){
  const [iid,setIid]=useState('');
@@ -10,6 +10,9 @@ export default function CampaignExtras({campaign:c,run,busy,institutionId,sectio
  const [details,setDetails]=useState('');
  const [points,setPoints]=useState(10);
  const [selected,setSelected]=useState<GiftRequest|null>(null);
+ const [giftQuery,setGiftQuery]=useState('');
+ const [giftStatus,setGiftStatus]=useState<'all'|'available'|'reserved'|'delivered'>('all');
+ const [showAddGift,setShowAddGift]=useState(false);
  const [donor,setDonor]=useState('');
  const [group,setGroup]=useState('');
  const [actor,setActor]=useState('');
@@ -20,7 +23,7 @@ export default function CampaignExtras({campaign:c,run,busy,institutionId,sectio
  const [bulkIid,setBulkIid]=useState('');
  const [message,setMessage]=useState('');
  const all=c.institutions.filter(i=>!institutionId||i.id===institutionId).flatMap(i=>(i.gifts||[]).map(g=>({...g,institution:i.name})));
- const chosen=c.institutions.find(i=>i.id===(iid||c.institutions[0]?.id));
+ const chosen=c.institutions.find(i=>i.id===(institutionId||iid||c.institutions[0]?.id));
  const preview=useMemo(()=>{
   const lines=bulkText.replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim());
   if(!lines.length)return [] as string[][];
@@ -35,7 +38,7 @@ export default function CampaignExtras({campaign:c,run,busy,institutionId,sectio
  });
  function startGift(g:GiftRequest){setSelected(g);setEdit(false);setDonor(g.donor||'');setGroup(g.group||'');setActor('');setReason('');setBeneficiary(g.beneficiary);setGiftName(g.giftName);setDetails(g.details);setPoints(g.points)}
  async function createGift(){const targetInstitutionId=institutionId||iid||c.institutions[0]?.id;if(!targetInstitutionId||!beneficiary.trim()||!giftName.trim()||busy)return;
-  if(await run('addGift',{institutionId:targetInstitutionId,beneficiary:beneficiary.trim(),giftName:giftName.trim(),details:details.trim(),points})){setBeneficiary('');setGiftName('');setDetails('');setMessage('Presente cadastrado.')}
+  if(await run('addGift',{institutionId:targetInstitutionId,beneficiary:beneficiary.trim(),giftName:giftName.trim(),details:details.trim(),points})){setBeneficiary('');setGiftName('');setDetails('');setShowAddGift(false);setMessage('Presente cadastrado.')}
  }
  async function changeGift(op:string){if(!selected||busy||actor.trim().length<2||reason.trim().length<5)return;
   const ok=await run(op,{giftId:selected.id,actor:actor.trim(),reason:reason.trim(),donor:donor.trim(),group,beneficiary:beneficiary.trim(),giftName:giftName.trim(),details:details.trim(),points});
@@ -57,16 +60,17 @@ export default function CampaignExtras({campaign:c,run,busy,institutionId,sectio
  }
  return <div className="campaign-extras">
  {(!section||section==='gifts')&&<section className="panel">
-  <div className="panel-header"><div><h3><Gift size={19}/> Presentes para adoção</h3><p className="muted">Um presente por beneficiário. Somente a CIPAA reserva e confirma entregas.</p></div><span className="pill">{all.length} presentes</span></div>
+  <div className="panel-header"><div><h3><Gift size={19}/> Presentes para adoção</h3><p className="muted">Gerencie os presentes da instituição. Reservas e baixas são feitas exclusivamente pela CIPAA.</p></div><button className="btn primary" onClick={()=>setShowAddGift(true)}><Plus size={16}/> Novo presente</button></div>
   <div className="gift-admin-summary"><span><b>{all.filter(g=>g.status==='available').length}</b> disponíveis</span><span><b>{all.filter(g=>g.status==='reserved').length}</b> reservados</span><span><b>{all.filter(g=>g.status==='delivered').length}</b> entregues</span></div>
-  <h4>Cadastrar presente</h4><div className="donation-v2-grid">
+  {showAddGift&&<div className="iw-add-gift-panel"><div className="panel-header"><h4>Cadastrar presente</h4><button className="icon-btn" aria-label="Fechar formulário" onClick={()=>setShowAddGift(false)}><X size={18}/></button></div><div className="donation-v2-grid">
    {!institutionId&&<label className="donation-v2-field"><span>Instituição</span><select value={iid||c.institutions[0]?.id||''} onChange={e=>setIid(e.target.value)}>{c.institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}</select></label>}
    <label className="donation-v2-field"><span>Beneficiário ou identificação</span><input placeholder="Ex.: Dona Maria — 78 anos" value={beneficiary} onChange={e=>setBeneficiary(e.target.value)}/></label>
    <label className="donation-v2-field"><span>Presente desejado</span><input placeholder="Ex.: Cobertor" value={giftName} onChange={e=>setGiftName(e.target.value)}/></label>
    <label className="donation-v2-field"><span>Detalhes (opcional)</span><input placeholder="Ex.: Tamanho, cor, numeração" value={details} onChange={e=>setDetails(e.target.value)}/></label>
    <label className="donation-v2-field"><span>Pontos ao entregar</span><input type="number" min="0" step="any" value={points} onChange={e=>setPoints(Number(e.target.value))}/></label>
-  </div><div className="donation-v2-actions"><button className="btn primary" disabled={busy||!c.institutions.length||!beneficiary.trim()||!giftName.trim()||points<0} onClick={()=>void createGift()}><Plus size={17}/> Adicionar presente</button></div>
-  {all.length>0&&<div className="gift-admin-list">{c.institutions.filter(i=>!institutionId||i.id===institutionId).map(i=>(i.gifts||[]).length>0&&<div key={i.id} className="gift-admin-institution"><strong>{i.name}</strong>{(i.gifts||[]).map(g=><div key={g.id} className="gift-admin-row"><div><b>{g.beneficiary}</b><span>{g.giftName}{g.details?' · '+g.details:''}</span><small>{g.status==='available'?'Disponível':g.status==='reserved'?'Reservado':'Entregue'} · {g.points} pontos</small></div><button className="btn outline" onClick={()=>startGift(g)}><Pencil size={15}/> {g.status==='available'?'Gerenciar':'Detalhes'}</button></div>)}</div>)}</div>}
+  </div><div className="donation-v2-actions"><button className="btn primary" disabled={busy||!c.institutions.length||!beneficiary.trim()||!giftName.trim()||points<0} onClick={()=>void createGift()}><Plus size={17}/> Salvar presente</button><button className="btn outline" onClick={()=>setShowAddGift(false)}>Cancelar</button></div></div>}
+  <div className="iw-gift-filters"><label className="iw-search"><Search size={16}/><input aria-label="Buscar presente ou beneficiário" placeholder="Buscar beneficiário ou presente" value={giftQuery} onChange={e=>setGiftQuery(e.target.value)}/></label><select aria-label="Filtrar status" value={giftStatus} onChange={e=>setGiftStatus(e.target.value as typeof giftStatus)}><option value="all">Todos os status</option><option value="available">Disponíveis</option><option value="reserved">Reservados</option><option value="delivered">Entregues</option></select></div>
+  {all.length>0?<div className="gift-admin-list iw-gift-list">{all.filter(g=>(giftStatus==='all'||g.status===giftStatus)&&[g.beneficiary,g.giftName,g.details].join(' ').toLocaleLowerCase('pt-BR').includes(giftQuery.toLocaleLowerCase('pt-BR'))).map(g=><div key={g.id} className="gift-admin-row"><div><b>{g.beneficiary}</b><span>{g.giftName}{g.details?' · '+g.details:''}</span><small>{g.status==='available'?'Disponível':g.status==='reserved'?'Reservado':'Entregue'} · {g.points} pontos</small></div><button className="btn outline" onClick={()=>startGift(g)}><Pencil size={15}/> Gerenciar</button></div>)}{!all.some(g=>(giftStatus==='all'||g.status===giftStatus)&&[g.beneficiary,g.giftName,g.details].join(' ').toLocaleLowerCase('pt-BR').includes(giftQuery.toLocaleLowerCase('pt-BR')))&&<p className="iw-gift-empty">Nenhum presente corresponde aos filtros.</p>}</div>:<div className="iw-empty"><Gift size={32}/><h4>Nenhum presente cadastrado</h4><p>Adicione um presente ou use a aba Importar para carregar uma lista.</p></div>}
  </section>}
  {(!section||section==='import')&&<section className="panel campaign-import">
   <div className="panel-header"><div><h3><Upload size={18}/> Importar dados em lote</h3><p className="muted">Prepare a tabela no Excel, copie e cole aqui, ou importe um CSV salvo pelo Excel.</p></div></div>
