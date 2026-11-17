@@ -205,7 +205,7 @@ export async function POST(req:NextRequest){
   for(let index=0;index<items.length;index++){
    const it=items[index];const itemName=txt(it?.name,150),quantity=it?.quantity,donor=txt(it?.donor,160),group=txt(it?.group,120),receivedBy=txt(it?.receivedBy,160);
    const matched=needs.filter(n=>String(n.name).toLocaleLowerCase('pt-BR')===itemName.toLocaleLowerCase('pt-BR'));
-   if(matched.length!==1||!finite(quantity)||quantity<=0||!donor||!group||!receivedBy||!groups.some(g=>String(g.name).toLocaleLowerCase('pt-BR')===group.toLocaleLowerCase('pt-BR')))
+   if(matched.length!==1||!finite(quantity)||quantity<=0||!donor||!group||!receivedBy||!COMPANIES.some(c=>c===group))
      return failure('Verifique material, quantidade, doador, grupo e responsável na linha '+(index+2)+'.');
    mapped.push({campaign_id:camp.id,institution_id:iid,need_id:matched[0].id,quantity,donor_name:donor,group_name:String(groups.find(g=>String(g.name).toLocaleLowerCase('pt-BR')===group.toLocaleLowerCase('pt-BR'))!.name),received_by:receivedBy});
   }
