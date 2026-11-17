@@ -1,5 +1,6 @@
 'use client';
-import {useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
 import {Campaign,GiftRequest,COMPANIES,Company} from '@/lib/types';
 import {useStore} from '@/components/store-provider';
 import {Gift,CalendarDays,Users,CheckCircle2,X,Info,ShieldCheck} from 'lucide-react';
@@ -9,18 +10,41 @@ const nameValid=(value:string)=>value.trim().replace(/\s+/g,' ').length>=5&&valu
 export default function PublicGiftAdoption({campaign,gifts}:{campaign:Campaign;gifts:GiftRequest[]}){
  const {refresh}=useStore();
  const [selected,setSelected]=useState<GiftRequest|null>(null);
+ const modalRef=useRef<HTMLElement|null>(null);
+ const openerRef=useRef<HTMLElement|null>(null);
  const [company,setCompany]=useState<Company|''>('');
  const [fullName,setFullName]=useState('');
  const [agreed,setAgreed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [success,setSuccess]=useState(false);
+ useEffect(()=>{
+  if(!selected)return;
+  const previousOverflow=document.body.style.overflow;
+  const previousPadding=document.body.style.paddingRight;
+  const scrollbarWidth=window.innerWidth-document.documentElement.clientWidth;
+  document.body.style.overflow='hidden';
+  if(scrollbarWidth>0)document.body.style.paddingRight=scrollbarWidth+'px';
+  const modal=modalRef.current;
+  modal?.focus({preventScroll:true});
+  function onKeyDown(event:KeyboardEvent){
+   if(event.key==='Escape'){event.preventDefault();setSelected(null);return;}
+   if(event.key!=='Tab'||!modal)return;
+   const focusable=Array.from(modal.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]')).filter(element=>element.getClientRects().length>0);
+   if(!focusable.length)return;
+   const first=focusable[0],last=focusable[focusable.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+  }
+  document.addEventListener('keydown',onKeyDown);
+  return ()=>{document.body.style.overflow=previousOverflow;document.body.style.paddingRight=previousPadding;document.removeEventListener('keydown',onKeyDown);openerRef.current?.focus({preventScroll:true})};
+ },[selected?.id]);
  const deadline=campaign.giftDeliveryDeadline||'';
  const now=new Date();
  const today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
  const deadlineOpen=Boolean(deadline&&deadline>=today);
  const contacts=(campaign.cipaaContacts||[]).filter(c=>c.company===company);
- function open(gift:GiftRequest){setSelected(gift);setCompany('');setFullName('');setAgreed(false);setError('');setSuccess(false)}
+ function open(gift:GiftRequest){openerRef.current=document.activeElement instanceof HTMLElement?document.activeElement:null;setSelected(gift);setCompany('');setFullName('');setAgreed(false);setError('');setSuccess(false)}
  function close(){setSelected(null);setSuccess(false);setError('')}
  async function reserve(){
   if(!selected||busy||!company||!nameValid(fullName)||!deadlineOpen||!contacts.length||!agreed)return;
@@ -41,7 +65,7 @@ export default function PublicGiftAdoption({campaign,gifts}:{campaign:Campaign;g
   {campaign.showItemPoints&&<small className="collab-item-points">{g.points.toLocaleString('pt-BR')} {g.points===1?'ponto':'pontos'} ao entregar</small>}
   {g.status==='available'&&<button type="button" className="gift-public-adopt-button" disabled={!deadlineOpen} onClick={()=>open(g)}>{deadlineOpen?'Quero adotar este presente':'Reserva ainda indisponível'}</button>}
  </article>)}</div>
- {selected&&<div className="gift-adopt-backdrop" onClick={close}><section className="gift-adopt-modal" role="dialog" aria-modal="true" aria-label="Adotar presente" onClick={e=>e.stopPropagation()}>
+ {selected&&typeof document!=='undefined'&&createPortal(<div className="gift-adopt-backdrop" onClick={close}><section ref={modalRef} tabIndex={-1} className="gift-adopt-modal" role="dialog" aria-modal="true" aria-label="Adotar presente" onClick={e=>e.stopPropagation()}>
   <div className="gift-adopt-modal-head"><div><span className="gift-adopt-eyebrow">ADOÇÃO SOLIDÁRIA</span><h3>{success?'Presente reservado!':'Adotar este presente'}</h3></div><button type="button" aria-label="Fechar janela" className="icon-btn" onClick={close}><X size={20}/></button></div>
   <div className="gift-adopt-selected"><Gift size={22}/><div><strong>{selected.beneficiary}</strong><span>{selected.giftName}{selected.details?' · '+selected.details:''}</span></div></div>
   {success?<div className="gift-adopt-success"><CheckCircle2 size={34}/><h4>Obrigado por participar!</h4><p>Sua adoção está reservada. Agora é só entregar o presente até <strong>{fullDate(deadline)}</strong>.</p><div className="gift-adopt-contact-box"><strong>Procure os membros da CIPAA — {company}:</strong>{contacts.map(c=><span key={c.id}>{c.name}</span>)}</div><p><strong>Não poderá ajudar?</strong> Avise um desses membros da CIPAA o quanto antes. Somente a comissão poderá cancelar sua reserva e liberar o presente para outra pessoa.</p><button type="button" className="gift-adopt-confirm" onClick={close}>Concluir</button></div>:
@@ -54,6 +78,6 @@ export default function PublicGiftAdoption({campaign,gifts}:{campaign:Campaign;g
    <button type="button" className="gift-adopt-confirm" disabled={busy||!company||!contacts.length||!nameValid(fullName)||!agreed||!deadlineOpen} onClick={()=>void reserve()}><ShieldCheck size={18}/>{busy?'Confirmando reserva...':'Confirmar adoção'}</button>
    <p className="gift-adopt-privacy">Seu nome e sua empresa serão usados para a reserva e ficarão disponíveis apenas à CIPAA, não na lista pública.</p>
   </>}
- </section></div>}
+ </section></div>,document.body)}
  </>;
 }
