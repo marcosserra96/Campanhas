@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {isAdmin} from '@/lib/admin-session';
 import {configured,db,rpc} from '@/lib/supabase-server';
-import {Campaign,COMPANIES} from '@/lib/types';
+import {Campaign} from '@/lib/types';
 export const runtime='nodejs';
 type Row=Record<string,unknown>;
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -12,7 +12,7 @@ const failure=(message:string,status=400)=>NextResponse.json({error:message},{st
 async function findCampaign(slug:string){const data=await db<Row[]>('campaigns','select=id,slug,status,archived_at&slug=eq.'+encodeURIComponent(slug));return data[0]}
 async function needInfo(needId:string){const ns=await db<Row[]>('needs','select=id,institution_id&import_removed_at=is.null&id=eq.'+needId);return ns[0]}
 async function campaignOwnsInstitution(campaignId:string,institutionId:string){const inst=await db<Row[]>('institutions','select=id&campaign_id=eq.'+campaignId+'&id=eq.'+institutionId);return inst.length>0}
-async function validGroup(campaignId:string,name:string){if(!COMPANIES.some(x=>x===name))return false;const rows=await db<Row[]>('campaign_groups','select=name&campaign_id=eq.'+campaignId);return rows.some(r=>r.name===name)}
+async function validGroup(_campaignId:string,name:string){const rows=await db<Row[]>('cipaa_companies','select=name&active=eq.true&name=eq.'+encodeURIComponent(name));return rows.some(r=>r.name===name)}
 export async function POST(req:NextRequest){
  if(!configured())return failure('Supabase ainda não configurado.',503);
  if(!await isAdmin())return failure('Acesso restrito à CIPAA.',401);
@@ -20,18 +20,32 @@ export async function POST(req:NextRequest){
  try{
  const body=await req.json() as Record<string,any>;
  const op=body.op as string;
+ if(op==='createCompany'||op==='renameCompany'){
+  const actor=txt(body.actor,160),name=txt(body.name,120).replace(/\\s+/g,' ').trim();
+  const companyId=body.companyId;
+  if(actor.length<2||name.length<2||name.length>120||(/(?:[\\r\\n<>])/.test(name)))return failure('Informe um nome de empresa válido e o responsável.');
+  if(op==='renameCompany'&&!valid(companyId))return failure('Selecione a empresa a renomear.');
+  try{
+   await rpc('manage_cipaa_company',{p_operation:op==='createCompany'?'create':'rename',p_company_id:op==='renameCompany'?companyId:null,p_name:name,p_actor:actor});
+   return NextResponse.json({ok:true});
+  }catch(e){
+   const raw=e instanceof Error?e.message:'';
+   const msg=raw.match(/"message":"([^"]+)"/)?.[1]||'Não foi possível salvar a empresa.';
+   return failure(msg,409);
+  }
+ }
  if(op==='addCompanyContact'){
-  const company=txt(body.company,30),name=txt(body.name,160);
-  if(!COMPANIES.some(c=>c===company)||name.length<3)return failure('Selecione a empresa e informe o nome do membro da CIPAA.');
+  const company=txt(body.company,120),name=txt(body.name,160);
+  if(!await validGroup('',company)||name.length<3)return failure('Selecione a empresa e informe o nome do membro da CIPAA.');
   const known=await db<Row[]>('cipaa_company_contacts','select=id,name&company=eq.'+encodeURIComponent(company));
   if(known.some(x=>String(x.name).toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))return failure('Este membro já está cadastrado para a empresa.');
   await db('cipaa_company_contacts','','POST',{company,name});
   return NextResponse.json({ok:true});
  }
  if(op==='bulkAddCompanyContacts'){
-  const company=txt(body.company,30);
+  const company=txt(body.company,120);
   const incoming=body.names;
-  if(!COMPANIES.some(c=>c===company)||!Array.isArray(incoming)||incoming.length<1||incoming.length>150)
+  if(!await validGroup('',company)||!Array.isArray(incoming)||incoming.length<1||incoming.length>150)
     return failure('Selecione a empresa e informe até 150 nomes por vez.');
   const normalize=(name:string)=>name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').toLocaleLowerCase('pt-BR').trim();
   const cleaned:string[]=[];
@@ -84,7 +98,7 @@ export async function POST(req:NextRequest){
  if(existing?.archived_at)return failure('Esta campanha está na lixeira. Restaure-a antes de editar.',409);
  const data={slug:c.id,title:txt(c.title,160),subtitle:txt(c.subtitle,200),description:txt(c.description,4000),starts_on:c.start||null,ends_on:c.end||null,status:c.status,accent:/^#[0-9a-f]{6}$/i.test(c.accent)?c.accent:'#66b900',banner_url:c.banner&&/^https:\/\//.test(c.banner)?txt(c.banner,1200):null,ranking_by:'equipe',ranking_mode:c.rankingMode,show_item_points:c.showItemPoints===true,updated_at:new Date().toISOString()};
  if(existing)await db('campaigns','id=eq.'+existing.id,'PATCH',data);
- else {const created=await db<Row[]>('campaigns','','POST',data);if(created[0]?.id)await db('campaign_groups','','POST',COMPANIES.map(name=>({campaign_id:created[0].id,name})));}
+ else {const created=await db<Row[]>('campaigns','','POST',data);if(created[0]?.id){const names=await db<Row[]>('cipaa_companies','select=name&active=eq.true');if(names.length)await db('campaign_groups','','POST',names.map(x=>({campaign_id:created[0].id,name:x.name})));}}
  return NextResponse.json({ok:true});
  }
  const slug=txt(body.campaignId,100);const camp=await findCampaign(slug);
@@ -129,7 +143,7 @@ export async function POST(req:NextRequest){
   await db('campaigns','id=eq.'+camp.id,'PATCH',{gift_delivery_deadline:deadline||null});
   return NextResponse.json({ok:true});
  }
- if(op==='addCampaignGroup'||op==='removeCampaignGroup')return failure('As empresas são fixas: EMR, CSE e (RE) Energisa.');
+ if(op==='addCampaignGroup'||op==='removeCampaignGroup')return failure('As empresas são gerenciadas em Configurações.');
  if(op==='attributeOpening'){
   const nid=body.needId as string;const quantity=body.quantity as number;
   const donor=txt(body.donor,160),group=txt(body.group,120),actor=txt(body.actor,160);
@@ -222,12 +236,12 @@ export async function POST(req:NextRequest){
   const items=body.items as Array<{name:string;quantity:number;donor:string;group:string;receivedBy:string}>;
   if(!Array.isArray(items)||!items.length||items.length>200)return failure('Importe entre 1 e 200 doações por vez.');
   const needs=await db<Row[]>('needs','select=id,name&institution_id=eq.'+iid+'&import_removed_at=is.null');
-  const groups=await db<Row[]>('campaign_groups','select=name&campaign_id=eq.'+camp.id);
+  const groups=await db<Row[]>('cipaa_companies','select=name&active=eq.true');
   const mapped=[] as Array<Record<string,unknown>>;
   for(let index=0;index<items.length;index++){
    const it=items[index];const itemName=txt(it?.name,150),quantity=it?.quantity,donor=txt(it?.donor,160),group=txt(it?.group,120),receivedBy=txt(it?.receivedBy,160);
    const matched=needs.filter(n=>String(n.name).toLocaleLowerCase('pt-BR')===itemName.toLocaleLowerCase('pt-BR'));
-   if(matched.length!==1||!finite(quantity)||quantity<=0||!donor||!group||!receivedBy||!COMPANIES.some(c=>c===group))
+   if(matched.length!==1||!finite(quantity)||quantity<=0||!donor||!group||!receivedBy||!groups.some(c=>c.name===group))
      return failure('Verifique material, quantidade, doador, grupo e responsável na linha '+(index+2)+'.');
    mapped.push({campaign_id:camp.id,institution_id:iid,need_id:matched[0].id,quantity,donor_name:donor,group_name:String(groups.find(g=>String(g.name).toLocaleLowerCase('pt-BR')===group.toLocaleLowerCase('pt-BR'))!.name),received_by:receivedBy});
   }
