@@ -3,7 +3,7 @@ import {useMemo,useState} from 'react';
 import {Campaign,GiftRequest} from '@/lib/types';
 import {Gift,Plus,CheckCircle2,Undo2,Pencil,Upload,Download,Info,Save,ShieldCheck} from 'lucide-react';
 type Run=(op:string,params:Record<string,unknown>)=>Promise<boolean>;
-export default function CampaignExtras({campaign:c,run,busy}:{campaign:Campaign;run:Run;busy:boolean}){
+export default function CampaignExtras({campaign:c,run,busy,institutionId,section}:{campaign:Campaign;run:Run;busy:boolean;institutionId?:string;section?:'gifts'|'import'}){
  const [iid,setIid]=useState('');
  const [beneficiary,setBeneficiary]=useState('');
  const [giftName,setGiftName]=useState('');
@@ -19,7 +19,7 @@ export default function CampaignExtras({campaign:c,run,busy}:{campaign:Campaign;
  const [bulkText,setBulkText]=useState('');
  const [bulkIid,setBulkIid]=useState('');
  const [message,setMessage]=useState('');
- const all=c.institutions.flatMap(i=>(i.gifts||[]).map(g=>({...g,institution:i.name})));
+ const all=c.institutions.filter(i=>!institutionId||i.id===institutionId).flatMap(i=>(i.gifts||[]).map(g=>({...g,institution:i.name})));
  const chosen=c.institutions.find(i=>i.id===(iid||c.institutions[0]?.id));
  const preview=useMemo(()=>{
   const lines=bulkText.replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim());
@@ -34,8 +34,8 @@ export default function CampaignExtras({campaign:c,run,busy}:{campaign:Campaign;
   return Boolean(x[0]&&x[1]&&((x[2]||'target').toLowerCase()==='free'||Number((x[3]||'0').replace(',','.'))>0)&&Number.isFinite(Number((x[4]||'1').replace(',','.'))));
  });
  function startGift(g:GiftRequest){setSelected(g);setEdit(false);setDonor(g.donor||'');setGroup(g.group||'');setActor('');setReason('');setBeneficiary(g.beneficiary);setGiftName(g.giftName);setDetails(g.details);setPoints(g.points)}
- async function createGift(){const institutionId=iid||c.institutions[0]?.id;if(!institutionId||!beneficiary.trim()||!giftName.trim()||busy)return;
-  if(await run('addGift',{institutionId,beneficiary:beneficiary.trim(),giftName:giftName.trim(),details:details.trim(),points})){setBeneficiary('');setGiftName('');setDetails('');setMessage('Presente cadastrado.')}
+ async function createGift(){const targetInstitutionId=institutionId||iid||c.institutions[0]?.id;if(!targetInstitutionId||!beneficiary.trim()||!giftName.trim()||busy)return;
+  if(await run('addGift',{institutionId:targetInstitutionId,beneficiary:beneficiary.trim(),giftName:giftName.trim(),details:details.trim(),points})){setBeneficiary('');setGiftName('');setDetails('');setMessage('Presente cadastrado.')}
  }
  async function changeGift(op:string){if(!selected||busy||actor.trim().length<2||reason.trim().length<5)return;
   const ok=await run(op,{giftId:selected.id,actor:actor.trim(),reason:reason.trim(),donor:donor.trim(),group,beneficiary:beneficiary.trim(),giftName:giftName.trim(),details:details.trim(),points});
@@ -44,39 +44,39 @@ export default function CampaignExtras({campaign:c,run,busy}:{campaign:Campaign;
  function downloadModel(){const text=bulkMode==='gifts'?'Beneficiario;Presente;Detalhes;Pontos\nDona Maria;Cobertor;Tamanho casal;10\nSr Jose;Chinelo;Numero 40;10\n':bulkMode==='donations'?'Material;Quantidade;Doador;Grupo;Recebido por\nLeite;12;Joao Silva;DESC;Maria CIPAA\n':'Material;Unidade;Modalidade;Meta;Pontos;Observacao\nLeite;litros;free;0;1;Arrecadacao livre\nFraldas;pacotes;target;200;1;Tamanho G\n';
  const blob=new Blob(['\uFEFF'+text],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='modelo-'+bulkMode+'.csv';a.click();URL.revokeObjectURL(url)}
  async function importData(){
-  if(busy||!bulkIid||!preview.length||preview.length>(bulkMode==='donations'?200:300)||validRows.length!==preview.length)return;
+  if(busy||!(institutionId||bulkIid)||!preview.length||preview.length>(bulkMode==='donations'?200:300)||validRows.length!==preview.length)return;
   const items=preview.map(x=>bulkMode==='gifts'
    ?{beneficiary:x[0],giftName:x[1],details:x[2]||'',points:Number((x[3]||'10').replace(',','.'))}
    :bulkMode==='donations'
     ?{name:x[0],quantity:Number((x[1]||'0').replace(',','.')),donor:x[2],group:x[3],receivedBy:x[4]}
     :{name:x[0],unit:x[1]||'unidade(s)',mode:x[2]?.toLowerCase()==='free'?'free':'target',target:Number((x[3]||'0').replace(',','.')),points:Number((x[4]||'1').replace(',','.')),specification:x[5]||''});
-  if(!window.confirm('Importar '+items.length+' registros para '+c.institutions.find(i=>i.id===bulkIid)?.name+'? '+(bulkMode==='donations'?'Doações importadas aumentarão o total recebido e os pontos, portanto não importe saldos iniciais já contabilizados.':'Revise os dados para evitar duplicidades.')))return;
+  if(!window.confirm('Importar '+items.length+' registros para '+c.institutions.find(i=>i.id===(institutionId||bulkIid))?.name+'? '+(bulkMode==='donations'?'Doações importadas aumentarão o total recebido e os pontos, portanto não importe saldos iniciais já contabilizados.':'Revise os dados para evitar duplicidades.')))return;
   const op=bulkMode==='gifts'?'bulkAddGifts':bulkMode==='donations'?'bulkReceiveDonations':'bulkAddNeeds';
-  const ok=await run(op,{institutionId:bulkIid,items});
+  const ok=await run(op,{institutionId:institutionId||bulkIid,items});
   if(ok){setBulkText('');setMessage(items.length+' registros importados com sucesso.')}
  }
  return <div className="campaign-extras">
- <section className="panel">
+ {(!section||section==='gifts')&&<section className="panel">
   <div className="panel-header"><div><h3><Gift size={19}/> Presentes para adoção</h3><p className="muted">Um presente por beneficiário. Somente a CIPAA reserva e confirma entregas.</p></div><span className="pill">{all.length} presentes</span></div>
   <div className="gift-admin-summary"><span><b>{all.filter(g=>g.status==='available').length}</b> disponíveis</span><span><b>{all.filter(g=>g.status==='reserved').length}</b> reservados</span><span><b>{all.filter(g=>g.status==='delivered').length}</b> entregues</span></div>
   <h4>Cadastrar presente</h4><div className="donation-v2-grid">
-   <label className="donation-v2-field"><span>Instituição</span><select value={iid||c.institutions[0]?.id||''} onChange={e=>setIid(e.target.value)}>{c.institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}</select></label>
+   {!institutionId&&<label className="donation-v2-field"><span>Instituição</span><select value={iid||c.institutions[0]?.id||''} onChange={e=>setIid(e.target.value)}>{c.institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}</select></label>}
    <label className="donation-v2-field"><span>Beneficiário ou identificação</span><input placeholder="Ex.: Dona Maria — 78 anos" value={beneficiary} onChange={e=>setBeneficiary(e.target.value)}/></label>
    <label className="donation-v2-field"><span>Presente desejado</span><input placeholder="Ex.: Cobertor" value={giftName} onChange={e=>setGiftName(e.target.value)}/></label>
    <label className="donation-v2-field"><span>Detalhes (opcional)</span><input placeholder="Ex.: Tamanho, cor, numeração" value={details} onChange={e=>setDetails(e.target.value)}/></label>
    <label className="donation-v2-field"><span>Pontos ao entregar</span><input type="number" min="0" step="any" value={points} onChange={e=>setPoints(Number(e.target.value))}/></label>
   </div><div className="donation-v2-actions"><button className="btn primary" disabled={busy||!c.institutions.length||!beneficiary.trim()||!giftName.trim()||points<0} onClick={()=>void createGift()}><Plus size={17}/> Adicionar presente</button></div>
-  {all.length>0&&<div className="gift-admin-list">{c.institutions.map(i=>(i.gifts||[]).length>0&&<div key={i.id} className="gift-admin-institution"><strong>{i.name}</strong>{(i.gifts||[]).map(g=><div key={g.id} className="gift-admin-row"><div><b>{g.beneficiary}</b><span>{g.giftName}{g.details?' · '+g.details:''}</span><small>{g.status==='available'?'Disponível':g.status==='reserved'?'Reservado':'Entregue'} · {g.points} pontos</small></div><button className="btn outline" onClick={()=>startGift(g)}><Pencil size={15}/> {g.status==='available'?'Gerenciar':'Detalhes'}</button></div>)}</div>)}</div>}
- </section>
- <section className="panel campaign-import">
+  {all.length>0&&<div className="gift-admin-list">{c.institutions.filter(i=>!institutionId||i.id===institutionId).map(i=>(i.gifts||[]).length>0&&<div key={i.id} className="gift-admin-institution"><strong>{i.name}</strong>{(i.gifts||[]).map(g=><div key={g.id} className="gift-admin-row"><div><b>{g.beneficiary}</b><span>{g.giftName}{g.details?' · '+g.details:''}</span><small>{g.status==='available'?'Disponível':g.status==='reserved'?'Reservado':'Entregue'} · {g.points} pontos</small></div><button className="btn outline" onClick={()=>startGift(g)}><Pencil size={15}/> {g.status==='available'?'Gerenciar':'Detalhes'}</button></div>)}</div>)}</div>}
+ </section>}
+ {(!section||section==='import')&&<section className="panel campaign-import">
   <div className="panel-header"><div><h3><Upload size={18}/> Importar dados em lote</h3><p className="muted">Prepare a tabela no Excel, copie e cole aqui, ou importe um CSV salvo pelo Excel.</p></div></div>
-  <div className="campaign-import-toolbar"><label className="donation-v2-field"><span>Tipo de importação</span><select value={bulkMode} onChange={e=>{setBulkMode(e.target.value as 'gifts'|'needs'|'donations');setBulkText('')}}><option value="gifts">Lista de presentes</option><option value="needs">Materiais, metas e pontos</option><option value="donations">Doações recebidas (novos registros)</option></select></label><label className="donation-v2-field"><span>Instituição de destino</span><select value={bulkIid} onChange={e=>setBulkIid(e.target.value)}><option value="">Selecione a instituição</option>{c.institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}</select></label></div>
+  <div className="campaign-import-toolbar"><label className="donation-v2-field"><span>Tipo de importação</span><select value={bulkMode} onChange={e=>{setBulkMode(e.target.value as 'gifts'|'needs'|'donations');setBulkText('')}}><option value="gifts">Lista de presentes</option><option value="needs">Materiais, metas e pontos</option><option value="donations">Doações recebidas (novos registros)</option></select></label>{!institutionId&&<label className="donation-v2-field"><span>Instituição de destino</span><select value={bulkIid} onChange={e=>setBulkIid(e.target.value)}><option value="">Selecione a instituição</option>{c.institutions.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}</select></label>}</div>
   <button type="button" className="btn outline" onClick={downloadModel}><Download size={17}/> Baixar modelo CSV para Excel</button>
   <label className="donation-v2-field campaign-import-input"><span>Colar tabela do Excel (inclua a primeira linha de títulos)</span><textarea rows={6} placeholder={bulkMode==='gifts'?'Beneficiario;Presente;Detalhes;Pontos\nDona Maria;Cobertor;Tamanho casal;10' :bulkMode==='donations'?'Material;Quantidade;Doador;Grupo;Recebido por\nLeite;12;João;DESC;Maria CIPAA':'Material;Unidade;Modalidade;Meta;Pontos;Observacao\nLeite;litros;free;0;1;Sem meta'} value={bulkText} onChange={e=>setBulkText(e.target.value)}/></label>
   <label className="campaign-import-file"><Upload size={16}/> Ou selecionar arquivo CSV<input type="file" accept=".csv,text/csv,text/plain" onChange={async e=>{const f=e.target.files?.[0];if(f)setBulkText(await f.text());e.target.value=''}}/></label>
   {preview.length>0&&<div className="campaign-import-preview"><b>Prévia: {preview.length} linhas · {validRows.length} válidas</b><div className="donation-v2-table-scroll"><table><tbody>{preview.slice(0,5).map((row,i)=><tr key={i}>{row.map((col,k)=><td key={k}>{col}</td>)}</tr>)}</tbody></table></div>{preview.length!==validRows.length&&<p className="notice">Revise as linhas incompletas antes de importar.</p>}</div>}
-  <button className="btn primary" disabled={busy||!bulkIid||!preview.length||preview.length>(bulkMode==='donations'?200:300)||validRows.length!==preview.length} onClick={()=>void importData()}><CheckCircle2 size={17}/> Confirmar importação de {preview.length} registros</button><p className="hint">Limite de 300 por importação. A importação adiciona registros. Para identificar doações antigas já contabilizadas, use a área de saldo inicial em Registrar doação, e não a importação de doações.</p>
- </section>
+  <button className="btn primary" disabled={busy||!(institutionId||bulkIid)||!preview.length||preview.length>(bulkMode==='donations'?200:300)||validRows.length!==preview.length} onClick={()=>void importData()}><CheckCircle2 size={17}/> Confirmar importação de {preview.length} registros</button><p className="hint">Limite de 300 por importação. A importação adiciona registros. Para identificar doações antigas já contabilizadas, use a área de saldo inicial em Registrar doação, e não a importação de doações.</p>
+ </section>}
  {message&&<p className="donation-notification"><CheckCircle2 size={18}/>{message}</p>}
  {selected&&<div className="donation-dialog-backdrop" onClick={()=>setSelected(null)}><section role="dialog" aria-modal="true" aria-label="Gerenciar presente" className="donation-dialog" onClick={e=>e.stopPropagation()}><div className="panel-header"><div><h3>{selected.beneficiary}: {selected.giftName}</h3><p className="muted">{selected.status==='available'?'Disponível para adoção':selected.status==='reserved'?'Aguardando entrega':'Presente entregue'}</p></div><button className="icon-btn" onClick={()=>setSelected(null)}>Fechar</button></div>
   {selected.status==='reserved'&&<p className="gift-admin-reserved">Reservado por <b>{selected.donor}</b> · {selected.group}</p>}
