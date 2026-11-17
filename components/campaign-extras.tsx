@@ -1,7 +1,7 @@
 'use client';
-import {useMemo,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import {Campaign,GiftRequest} from '@/lib/types';
-import {Gift,Plus,CheckCircle2,Undo2,Pencil,Upload,Download,Info,Save,ShieldCheck,X,Search} from 'lucide-react';
+import {Gift,Plus,CheckCircle2,Undo2,Pencil,Upload,Download,Info,Save,ShieldCheck,X,Search,History,AlertTriangle} from 'lucide-react';
 type Run=(op:string,params:Record<string,unknown>)=>Promise<boolean>;
 export default function CampaignExtras({campaign:c,run,busy,institutionId,section}:{campaign:Campaign;run:Run;busy:boolean;institutionId?:string;section?:'gifts'|'import'}){
  const [iid,setIid]=useState('');
@@ -22,6 +22,34 @@ export default function CampaignExtras({campaign:c,run,busy,institutionId,sectio
  const [bulkText,setBulkText]=useState('');
  const [bulkIid,setBulkIid]=useState('');
  const [message,setMessage]=useState('');
+ const [batches,setBatches]=useState<Array<{id:string;kind:'needs'|'gifts'|'donations';row_count:number;created_at:string;created_by:string;label:string;undone_at:string|null;undone_by:string|null}>>([]);
+ const [batchesLoading,setBatchesLoading]=useState(false);
+ const [batchesError,setBatchesError]=useState('');
+ const [undoTarget,setUndoTarget]=useState<{id:string;kind:string;count:number;label:string}|null>(null);
+ const [undoActor,setUndoActor]=useState('');
+ const [undoReason,setUndoReason]=useState('');
+ const currentInstitution=institutionId||bulkIid;
+ async function loadBatches(target:string){
+  if(!target){setBatches([]);return;}
+  setBatchesLoading(true);setBatchesError('');
+  try{
+   const response=await fetch('/api/admin/imports?campaign='+encodeURIComponent(c.id)+'&institution='+encodeURIComponent(target),{cache:'no-store'});
+   const result=await response.json();
+   if(!response.ok)throw Error(result.error||'Erro ao carregar importações.');
+   setBatches(Array.isArray(result.batches)?result.batches:[]);
+  }catch(e){setBatchesError(e instanceof Error?e.message:'Erro ao carregar importações.')}
+  finally{setBatchesLoading(false)}
+ }
+ useEffect(()=>{if(section==='import')void loadBatches(currentInstitution);},[c.id,section,currentInstitution]);
+ async function undoImport(){
+  if(!undoTarget||busy||undoActor.trim().length<2||undoReason.trim().length<5)return;
+  if(await run('undoImportBatch',{batchId:undoTarget.id,actor:undoActor.trim(),reason:undoReason.trim()})){
+   setMessage('Importação desfeita: '+undoTarget.count+' registros foram retirados da visualização, com auditoria preservada.');
+   setUndoTarget(null);setUndoActor('');setUndoReason('');
+   void loadBatches(currentInstitution);
+  }
+ }
+
  const all=c.institutions.filter(i=>!institutionId||i.id===institutionId).flatMap(i=>(i.gifts||[]).map(g=>({...g,institution:i.name})));
  const chosen=c.institutions.find(i=>i.id===(institutionId||iid||c.institutions[0]?.id));
  const preview=useMemo(()=>{
@@ -56,7 +84,7 @@ export default function CampaignExtras({campaign:c,run,busy,institutionId,sectio
   if(!window.confirm('Importar '+items.length+' registros para '+c.institutions.find(i=>i.id===(institutionId||bulkIid))?.name+'? '+(bulkMode==='donations'?'Doações importadas aumentarão o total recebido e os pontos, portanto não importe saldos iniciais já contabilizados.':'Revise os dados para evitar duplicidades.')))return;
   const op=bulkMode==='gifts'?'bulkAddGifts':bulkMode==='donations'?'bulkReceiveDonations':'bulkAddNeeds';
   const ok=await run(op,{institutionId:institutionId||bulkIid,items});
-  if(ok){setBulkText('');setMessage(items.length+' registros importados com sucesso.')}
+  if(ok){setBulkText('');setMessage(items.length+' registros importados com sucesso.');void loadBatches(institutionId||bulkIid)}
  }
  return <div className="campaign-extras">
  {(!section||section==='gifts')&&<section className="panel">
@@ -80,8 +108,13 @@ export default function CampaignExtras({campaign:c,run,busy,institutionId,sectio
   <label className="campaign-import-file"><Upload size={16}/> Ou selecionar arquivo CSV<input type="file" accept=".csv,text/csv,text/plain" onChange={async e=>{const f=e.target.files?.[0];if(f)setBulkText(await f.text());e.target.value=''}}/></label>
   {preview.length>0&&<div className="campaign-import-preview"><b>Prévia: {preview.length} linhas · {validRows.length} válidas</b><div className="donation-v2-table-scroll"><table><tbody>{preview.slice(0,5).map((row,i)=><tr key={i}>{row.map((col,k)=><td key={k}>{col}</td>)}</tr>)}</tbody></table></div>{preview.length!==validRows.length&&<p className="notice">Revise as linhas incompletas antes de importar.</p>}</div>}
   <button className="btn primary" disabled={busy||!(institutionId||bulkIid)||!preview.length||preview.length>(bulkMode==='donations'?200:300)||validRows.length!==preview.length} onClick={()=>void importData()}><CheckCircle2 size={17}/> Confirmar importação de {preview.length} registros</button><p className="hint">Limite de 300 por importação. A importação adiciona registros. Para identificar doações antigas já contabilizadas, use a área de saldo inicial em Registrar doação, e não a importação de doações.</p>
+  <div className="import-undo-history">
+   <div className="panel-header"><div><h3><History size={18}/> Histórico de importações</h3><p className="muted">Desfaça um envio feito na instituição errada sem excluir os demais registros.</p></div><button className="btn outline" disabled={batchesLoading||!currentInstitution} onClick={()=>void loadBatches(currentInstitution)}><History size={15}/> Atualizar</button></div>
+   {batchesLoading?<p className="muted">Carregando histórico...</p>:batchesError?<p className="notice">{batchesError}</p>:batches.length?batches.map(batch=><div className="import-undo-row" key={batch.id}><div><strong>{batch.label|| (batch.kind==='needs'?'Materiais':batch.kind==='gifts'?'Presentes':'Doações')}</strong><small>{batch.row_count} registros · {new Date(batch.created_at).toLocaleString('pt-BR')}</small><small>{batch.undone_at?'Desfeita em '+new Date(batch.undone_at).toLocaleString('pt-BR'):'Importação ativa'}</small></div>{batch.undone_at?<span className="import-undone-status"><CheckCircle2 size={15}/> Desfeita</span>:<button className="btn outline danger-text" disabled={busy} onClick={()=>{setUndoTarget({id:batch.id,kind:batch.kind,count:batch.row_count,label:batch.label||'Importação'});setUndoActor('');setUndoReason('Importação realizada na instituição incorreta')}}><Undo2 size={16}/> Desfazer importação</button>}</div>):<p className="muted">Nenhuma importação em lote registrada nesta instituição.</p>}
+  </div>
  </section>}
  {message&&<p className="donation-notification"><CheckCircle2 size={18}/>{message}</p>}
+ {undoTarget&&<div className="donation-dialog-backdrop" onClick={()=>setUndoTarget(null)}><section className="donation-dialog" role="dialog" aria-modal="true" aria-label="Desfazer importação" onClick={e=>e.stopPropagation()}><div className="panel-header"><div><h3><AlertTriangle size={19}/> Desfazer importação</h3><p className="muted">{undoTarget.label}</p></div><button className="icon-btn" aria-label="Fechar" onClick={()=>setUndoTarget(null)}><X size={19}/></button></div><div className="import-undo-warning"><strong>{undoTarget.count} registros</strong> serão retirados desta instituição.{undoTarget.kind==='donations'?' As doações serão canceladas e os totais corrigidos.':' Os registros importados deixarão de aparecer no portal e no painel.'} A operação ficará documentada para auditoria. Se algum registro já tiver doações, reservas ou alterações, a operação será bloqueada.</div><div className="donation-v2-audit-inputs"><label className="donation-v2-field"><span>Seu nome (CIPAA) *</span><input value={undoActor} onChange={e=>setUndoActor(e.target.value)} placeholder="Responsável pela correção"/></label><label className="donation-v2-field"><span>Motivo *</span><textarea rows={3} value={undoReason} onChange={e=>setUndoReason(e.target.value)} placeholder="Ex.: Importação feita na instituição errada"/></label></div><div className="donation-v2-actions"><button className="btn outline danger-text" disabled={busy||undoActor.trim().length<2||undoReason.trim().length<5} onClick={()=>void undoImport()}><Undo2 size={17}/> Confirmar desfazer {undoTarget.count} registros</button><button className="btn outline" onClick={()=>setUndoTarget(null)}>Cancelar</button></div></section></div>}
  {selected&&<div className="donation-dialog-backdrop" onClick={()=>setSelected(null)}><section role="dialog" aria-modal="true" aria-label="Gerenciar presente" className="donation-dialog" onClick={e=>e.stopPropagation()}><div className="panel-header"><div><h3>{selected.beneficiary}: {selected.giftName}</h3><p className="muted">{selected.status==='available'?'Disponível para adoção':selected.status==='reserved'?'Aguardando entrega':'Presente entregue'}</p></div><button className="icon-btn" onClick={()=>setSelected(null)}>Fechar</button></div>
   {selected.status==='reserved'&&<p className="gift-admin-reserved">Reservado por <b>{selected.donor}</b> · {selected.group}</p>}
   {selected.status==='delivered'&&<p className="gift-admin-reserved">Entregue por <b>{selected.donor}</b> · {selected.group}</p>}
