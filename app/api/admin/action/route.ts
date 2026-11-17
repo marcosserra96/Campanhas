@@ -20,6 +20,22 @@ export async function POST(req:NextRequest){
  try{
  const body=await req.json() as Record<string,any>;
  const op=body.op as string;
+ if(op==='addCompanyContact'){
+  const company=txt(body.company,30),name=txt(body.name,160);
+  if(!COMPANIES.some(c=>c===company)||name.length<3)return failure('Selecione a empresa e informe o nome do membro da CIPAA.');
+  const known=await db<Row[]>('cipaa_company_contacts','select=id,name&company=eq.'+encodeURIComponent(company));
+  if(known.some(x=>String(x.name).toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))return failure('Este membro já está cadastrado para a empresa.');
+  await db('cipaa_company_contacts','','POST',{company,name});
+  return NextResponse.json({ok:true});
+ }
+ if(op==='removeCompanyContact'){
+  const id=body.contactId;
+  if(!valid(id))return failure('Contato inválido.');
+  const existing=await db<Row[]>('cipaa_company_contacts','select=id&id=eq.'+id);
+  if(!existing.length)return failure('Contato não encontrado.',404);
+  await db('cipaa_company_contacts','id=eq.'+id,'DELETE');
+  return NextResponse.json({ok:true});
+ }
  if(op==='archiveCampaign'||op==='restoreCampaign'){
   const slug=txt(body.campaignId,100),actor=txt(body.actor,160);
   if(!/^[a-z0-9-]{3,100}$/.test(slug)||actor.length<2)return failure('Informe a campanha e o nome de quem está realizando a ação.');
@@ -89,22 +105,6 @@ export async function POST(req:NextRequest){
   const deadline=txt(body.deadline,10);
   if(deadline&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(deadline))return failure('Data de entrega inválida.');
   await db('campaigns','id=eq.'+camp.id,'PATCH',{gift_delivery_deadline:deadline||null});
-  return NextResponse.json({ok:true});
- }
- if(op==='addCompanyContact'){
-  const company=txt(body.company,30),name=txt(body.name,160);
-  if(!COMPANIES.some(c=>c===company)||name.length<3)return failure('Selecione a empresa e informe o nome do membro da CIPAA.');
-  const known=await db<Row[]>('cipaa_company_contacts','select=id,name&campaign_id=eq.'+camp.id+'&company=eq.'+encodeURIComponent(company));
-  if(known.some(x=>String(x.name).toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))return failure('Este membro já está cadastrado para a empresa.');
-  await db('cipaa_company_contacts','','POST',{campaign_id:camp.id,company,name});
-  return NextResponse.json({ok:true});
- }
- if(op==='removeCompanyContact'){
-  const id=body.contactId;
-  if(!valid(id))return failure('Contato inválido.');
-  const existing=await db<Row[]>('cipaa_company_contacts','select=id&campaign_id=eq.'+camp.id+'&id=eq.'+id);
-  if(!existing.length)return failure('Contato não encontrado.',404);
-  await db('cipaa_company_contacts','id=eq.'+id+'&campaign_id=eq.'+camp.id,'DELETE');
   return NextResponse.json({ok:true});
  }
  if(op==='addCampaignGroup'||op==='removeCampaignGroup')return failure('As empresas são fixas: EMR, CSE e (RE) Energisa.');
