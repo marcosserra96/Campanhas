@@ -21,12 +21,12 @@ export function StoreProvider({children,admin=false}:{children:React.ReactNode;a
  useEffect(()=>{
   let active=true;
   (async()=>{
-    if(admin&&location.hash.startsWith('#access=')){
+    if(admin&&(location.hash.startsWith('#access=')||location.hash.startsWith('#invite='))){
      try{
-      const token=decodeURIComponent(location.hash.slice('#access='.length));
+      const token=decodeURIComponent(location.hash.slice(location.hash.indexOf('=')+1));
       history.replaceState(null,'',location.pathname+location.search);
       const response=await fetch('/api/admin/access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
-      if(!response.ok)throw Error('Link administrativo inválido.');
+      if(!response.ok)throw Error('Convite CIPAA inválido ou expirado. Solicite um novo link à equipe.');
      }catch(e){if(active){setError(e instanceof Error?e.message:'Link inválido');setReady(true)}return}
     }
     if(active)await refresh();
