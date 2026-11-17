@@ -950,3 +950,24 @@
 .company-bulk-names{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
 .company-bulk-names span{font-size:11px;color:#386978;background:#eef7f8;border:1px solid #deedef;border-radius:7px;padding:6px 8px;overflow-wrap:anywhere}
 @media(max-width:720px){.company-bulk-fields{grid-template-columns:1fr}.company-bulk-paste{padding:15px}}
+
+
+/* Adoção: modal sempre relativo à tela, independente da posição da lista. */
+.gift-adopt-backdrop{
+ position:fixed!important;inset:0!important;
+ width:100vw;height:100vh;height:100dvh;
+ z-index:2147483000!important;
+ display:flex;align-items:center;justify-content:center;
+ overflow-y:auto;overscroll-behavior:contain;
+ padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+}
+.gift-adopt-modal{
+ width:min(540px,100%);max-height:min(860px,calc(100dvh - 28px));
+ overflow-y:auto;overscroll-behavior:contain;
+ margin:auto;flex-shrink:0;
+}
+.gift-adopt-modal:focus{outline:none}
+@media(max-width:600px){
+ .gift-adopt-backdrop{padding:10px}
+ .gift-adopt-modal{max-height:calc(100dvh - 20px)}
+}
