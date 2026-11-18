@@ -35,11 +35,11 @@ export default function OpeningBalanceManager({campaign:c,attributions,run,busy,
  }
  function startEdit(d:Donation){setEditing(d);setEditQuantity(d.quantity);setEditDonor(d.donor);setEditGroup(d.group);setEditActor(actor||d.receivedBy||'');setReason('')}
  async function saveEdit(){
-  if(!editing||busy||!editDonor.trim()||!groups.some(g=>g.name===editGroup)||!editActor.trim()||reason.trim().length<5||editQuantity<=0)return;
+  if(!editing||busy||!editDonor.trim()||!groups.some(g=>g.name===editGroup)||!editActor.trim()||reason.trim().length<3||editQuantity<=0)return;
   if(await run('editOpening',{attributionId:editing.id,quantity:editQuantity,donor:editDonor.trim(),group:editGroup,actor:editActor.trim(),reason:reason.trim()})){setEditing(null);setMessage('Identificação corrigida com registro de auditoria.');onUpdate?.()}
  }
  async function cancel(){
-  if(!editing||busy||!editActor.trim()||reason.trim().length<5)return;
+  if(!editing||busy||!editActor.trim()||reason.trim().length<3)return;
   if(!window.confirm('Cancelar esta identificação? A quantidade voltará a ficar sem doador identificado, mas continuará no saldo inicial.'))return;
   if(await run('voidOpening',{attributionId:editing.id,actor:editActor.trim(),reason:reason.trim()})){setEditing(null);setMessage('Identificação cancelada. O total arrecadado continua igual.');onUpdate?.()}
  }
@@ -65,7 +65,7 @@ export default function OpeningBalanceManager({campaign:c,attributions,run,busy,
    <label className="donation-v2-field"><span>Quantidade</span><input type="number" min="0.01" step="any" value={editQuantity} onChange={e=>setEditQuantity(Number(e.target.value))}/></label>
    <label className="donation-v2-field"><span>Empresa</span><select value={editGroup} onChange={e=>setEditGroup(e.target.value)}><option value="">Selecione</option>{groups.map(g=><option key={g.id} value={g.name}>{g.name}</option>)}</select></label>
    <label className="donation-v2-field"><span>Responsável pela correção</span><input value={editActor} onChange={e=>setEditActor(e.target.value)}/></label>
-   <label className="donation-v2-field donation-v2-wide"><span>Motivo da alteração</span><textarea rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Ex.: Doador informado incorretamente"/></label>
-   </div><div className="donation-v2-actions"><button className="btn primary" disabled={busy||!editDonor.trim()||!editActor.trim()||reason.trim().length<5||editQuantity<=0||!groups.some(g=>g.name===editGroup)} onClick={()=>void saveEdit()}><ShieldCheck size={17}/> Salvar correção</button><button className="btn outline danger-text" disabled={busy||!editActor.trim()||reason.trim().length<5} onClick={()=>void cancel()}><Trash2 size={16}/> Desfazer identificação</button></div></div></div>}
+   <label className="donation-v2-field donation-v2-wide"><span>Motivo da alteração</span><textarea rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Ex.: Nome incorreto" minLength={3}/></label>
+   </div>{reason.trim().length>0&&reason.trim().length<3&&<p className="hint" role="status">Informe pelo menos 3 caracteres no motivo da alteração.</p>}<div className="donation-v2-actions"><button className="btn primary" disabled={busy||!editDonor.trim()||!editActor.trim()||reason.trim().length<3||editQuantity<=0||!groups.some(g=>g.name===editGroup)} onClick={()=>void saveEdit()}><ShieldCheck size={17}/> Salvar correção</button><button className="btn outline danger-text" disabled={busy||!editActor.trim()||reason.trim().length<3} onClick={()=>void cancel()}><Trash2 size={16}/> Desfazer identificação</button></div></div></div>}
  </section>;
 }
