@@ -160,7 +160,7 @@ export async function POST(req:NextRequest){
   const rows=await db<Row[]>('opening_attributions','select=id,need_id,voided_at&campaign_id=eq.'+camp.id+'&id=eq.'+id);
   if(!rows.length||rows[0].voided_at)return failure('Atribuição já cancelada ou inexistente.',404);
   const actor=txt(body.actor,160),reason=txt(body.reason,500);
-  if(actor.length<2||reason.length<5)return failure('Informe responsável e motivo (mínimo de 5 caracteres).');
+  if(actor.length<2||reason.length<3)return failure('Informe responsável e motivo (mínimo de 3 caracteres).');
   if(op==='voidOpening'){
    const changed=await db<Row[]>('opening_attributions','id=eq.'+id+'&campaign_id=eq.'+camp.id+'&voided_at=is.null','PATCH',{voided_at:new Date().toISOString(),voided_by:actor,edited_by:actor,edit_reason:reason});
    if(!changed.length)return failure('Atribuição já alterada. Atualize a lista.',409);
