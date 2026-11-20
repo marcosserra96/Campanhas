@@ -18,6 +18,7 @@ export default function PublicGiftAdoption({campaign,gifts}:{campaign:Campaign;g
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [success,setSuccess]=useState(false);
+ const [showAll,setShowAll]=useState(false);
  useEffect(()=>{
   if(!selected)return;
   const previousOverflow=document.body.style.overflow;
@@ -39,6 +40,9 @@ export default function PublicGiftAdoption({campaign,gifts}:{campaign:Campaign;g
   document.addEventListener('keydown',onKeyDown);
   return ()=>{document.body.style.overflow=previousOverflow;document.body.style.paddingRight=previousPadding;document.removeEventListener('keydown',onKeyDown);openerRef.current?.focus({preventScroll:true})};
  },[selected?.id]);
+ const availableGifts=gifts.filter(g=>g.status==='available');
+ const adoptedCount=gifts.length-availableGifts.length;
+ const shownGifts=showAll?gifts:availableGifts;
  const deadline=campaign.giftDeliveryDeadline||'';
  const now=new Date();
  const today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
@@ -60,12 +64,17 @@ export default function PublicGiftAdoption({campaign,gifts}:{campaign:Campaign;g
   finally{setBusy(false)}
  }
  return <>
- <div className="gift-public-grid">{gifts.map(g=><article className={'gift-public-card '+g.status} key={g.id}>
+ <div className="gift-public-list-toolbar">
+  <div className="gift-public-list-count" aria-live="polite"><strong>{showAll?gifts.length:availableGifts.length} {showAll?'presentes no total':'presentes disponíveis'}</strong><small>{adoptedCount>0?`${adoptedCount} já ${adoptedCount===1?'reservado ou entregue':'reservados ou entregues'}`:'Todos estão disponíveis para adoção'}</small></div>
+  {adoptedCount>0&&<button type="button" className="gift-public-toggle-all" onClick={()=>setShowAll(value=>!value)} aria-pressed={showAll}>{showAll?'Mostrar somente disponíveis':`Ver todos (${gifts.length})`}</button>}
+ </div>
+ {shownGifts.length===0?<div className="gift-public-empty" role="status"><CheckCircle2 size={26}/><strong>Todos os presentes já foram adotados!</strong><p>Você pode consultar as reservas e entregas usando “Ver todos”.</p></div>:
+ <div className="gift-public-grid">{shownGifts.map(g=><article className={'gift-public-card '+g.status} key={g.id}>
   <div className="gift-public-card-top"><span className="gift-public-icon"><Gift size={20}/></span><span className="gift-public-status">{g.status==='available'?'Disponível':g.status==='reserved'?'Reservado':'Entregue'}</span></div>
   <strong>{g.beneficiary}</strong><span>{g.giftName}</span>{g.details&&<small>{g.details}</small>}
   {campaign.showItemPoints&&<small className="collab-item-points">{g.points.toLocaleString('pt-BR')} {g.points===1?'ponto':'pontos'} ao entregar</small>}
   {g.status==='available'&&<button type="button" className="gift-public-adopt-button" disabled={!deadlineOpen} onClick={()=>open(g)}>{deadlineOpen?'Quero adotar este presente':'Reserva ainda indisponível'}</button>}
- </article>)}</div>
+ </article>)}</div>}
  {selected&&typeof document!=='undefined'&&createPortal(<div className="gift-adopt-backdrop" onClick={close}><section ref={modalRef} tabIndex={-1} className="gift-adopt-modal" role="dialog" aria-modal="true" aria-label="Adotar presente" onClick={e=>e.stopPropagation()}>
   <div className="gift-adopt-modal-head"><div><span className="gift-adopt-eyebrow">ADOÇÃO SOLIDÁRIA</span><h3>{success?'Presente reservado!':'Adotar este presente'}</h3></div><button type="button" aria-label="Fechar janela" className="icon-btn" onClick={close}><X size={20}/></button></div>
   <div className="gift-adopt-selected"><Gift size={22}/><div><strong>{selected.beneficiary}</strong><span>{selected.giftName}{selected.details?' · '+selected.details:''}</span></div></div>
