@@ -1089,3 +1089,17 @@
  .collab-beneficiary-institution-head>span small{font-size:10px}
  .collab-beneficiary-institution-head>span b{font-size:16px}
 }
+
+
+/* Adoção solidária: exibir primeiro somente presentes disponíveis */
+.gift-public-list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 16px}
+.gift-public-list-count{display:flex;flex-direction:column;gap:4px}
+.gift-public-list-count strong{color:#2a5866;font-size:13px}
+.gift-public-list-count small{color:#8297a2;font-size:11px}
+.gift-public-toggle-all{border:1px solid #bfdce1;border-radius:9px;background:#fff;color:#237c89;min-height:39px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;transition:background .16s,border-color .16s}
+.gift-public-toggle-all:hover{background:#eaf6f7;border-color:#73bdc1}
+.gift-public-toggle-all[aria-pressed="true"]{background:#eaf6f7;border-color:#8ac6c9}
+.gift-public-empty{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;border:1px dashed #b8d7d1;background:#f2fbf7;border-radius:12px;padding:33px 17px;color:#2f9073}
+.gift-public-empty strong{font-size:14px;color:#2e725e}
+.gift-public-empty p{font-size:12px;line-height:1.55;color:#718e8b;margin:0}
+@media(max-width:520px){.gift-public-list-toolbar{align-items:stretch;flex-direction:column}.gift-public-toggle-all{align-self:flex-start}}
